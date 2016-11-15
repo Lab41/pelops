@@ -1,6 +1,7 @@
 # Pelops
 TOOD: logo
-TODO: badges
+
+[![CircleCI](https://circleci.com/gh/Lab41/pelops.svg?style=svg)](https://circleci.com/gh/Lab41/pelops)
 TODO: paragraph about project
 
 # Install Instructions
