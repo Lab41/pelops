@@ -1,18 +1,19 @@
 """ Transform images in a directory
 
 Usage:
-    transform.py 
     transform.py (-h | --help)
+    transform.py <INPUT_PATH> <OUTPUT_PATH> [-a | -b | -s | -g]
 
 Arguments:
-    INPUT_PATH      Path to the input directory where images are stored
-    OUTPUT_PATH     Path to the output directory where resulting, degraded images are saved
+    INPUT_PATH      : Path to the input directory where images are stored
+    OUTPUT_PATH     : Path to the output directory where resulting, degraded images are saved
 
 Options: 
-    --all           Perform all the degraded functions to the images
-    --blur          Blur the images
-    --ste           Shrink by 25% (default) and then enlarge
-    --grayscale     Convert the images into grayscale
+    -h, --help      : Show the help message
+    -a, --all       : Perform all the degraded functions to the images
+    -b, --blur      : Blur the images
+    -s, --ste       : Shrink by 25% (default) and then enlarge
+    -g, --grayscale : Convert the images into grayscale
 
 """
 
@@ -30,13 +31,25 @@ def main(args):
         output_path: path to output directory where degraded images are saved 
     """
 
-    # extract 
+    # extract arguments from command line
+    is_blur = False
+    is_ste = False
+    is_grayscale = False
     try:
         input_path = args['INPUT_PATH']
         output_path = args['OUTPUT_PATH']
+        if args["--all"]:
+            is_blur = True
+            is_ste = True
+            is_grayscale = True
+        if args["--blur"]:
+            is_blur = True
+        if args["--ste"]:
+            is_ste = True
+        if args["--grayscale"]:
+            is_grayscale = True
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
-
 
     # check that input_path points to a directory
     if not os.path.exists(input_path):
@@ -47,17 +60,21 @@ def main(args):
     # create the output directory if it did not already exist
     makedir(output_path)
 
-
     input_path = "/Users/tiffanyj/datasets/pelops/cars/cars/images"
     output_path = "/Users/tiffanyj/datasets/pelops/degraded/cars"
     main(input_path, output_path)
 
-
     # create the subdirectories within the output directory 
-    # for each degradation we will perform
-    blur_dir = makepath(os.path.abspath(output_path), "blur"); makedir(blur_dir)
-    ste_dir = makepath(os.path.abspath(output_path), "shrink_then_enlarge"); makedir(ste_dir)
-    grayscale_dir = makepath(os.path.abspath(output_path), "grayscale"); makedir(grayscale_dir)
+    # for each degradation we will performs
+    if is_blur:
+        blur_dir = makepath(os.path.abspath(output_path), "blur"); 
+        makedir(blur_dir)
+    if is_ste:
+        ste_dir = makepath(os.path.abspath(output_path), "shrink_then_enlarge"); 
+        makedir(ste_dir)
+    if is_grayscale:
+        grayscale_dir = makepath(os.path.abspath(output_path), "grayscale"); 
+        makedir(grayscale_dir)
 
 # -----------------------------------------------------------------------------
 #  Transformation functions
@@ -104,9 +121,9 @@ def main(args):
     for file_path in traverse(input_path):
         try:
             img = TransformedImage(Image.open(file_path), output_path)
-            img.blur()
-            img.shrink_then_enlarge()
-            img.grayscale()
+            if is_blur: img.blur()
+            if is_ste: img.shrink_then_enlarge()
+            if is_grayscale: img.grayscale()
         except IOError:
             print ("ERROR: file (%s) is not an image" % file_path)
         except Exception as e:
