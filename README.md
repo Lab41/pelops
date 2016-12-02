@@ -24,5 +24,5 @@ Tests are currently written in py.test for Python.  The tests are automatically 
 They can also be tested using:
 TODO
 
-# Contributing to Poseidon
+# Contributing to Pelops
 Want to contribute?  Awesome!  Issue a pull request or see more details 
