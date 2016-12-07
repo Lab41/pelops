@@ -5,42 +5,196 @@ datasets contain
 * 20 cameras
 * 1.0 km^2 area
 * 24 hours
-
-vehicle_camera_
-
 """
 
 import collections
+import datetime
+import os
 import random
 import re
 
-def main(veri_unzipped_path):
-    name_query = veri_unzipped_path + "name_query.txt"
-    name_test = veri_unzipped_path + "name_test.txt"
-    name_train = veri_unzipped_path + "name_train.txt"
-    img_names = merge_names(name_query, name_test, name_train)
-    print(get_num_spotted(img_names))
-    num_cams = 5
+class Veri(object):
+    # class variables
+    name_query_filepath = "name_query.txt"
+    name_test_filepath = "name_test.txt"
+    name_train_filepath = "name_train.txt"
+    image_query_filepath = "image_query"
+    image_test_filepath = "image_test"
+    image_train_filepath = "image_train"
+    num_cars = 776
+    num_cams = 20 
+    total_images = 49358 
 
-    num_cars_per_cam = 3
+class ExperimentGenerator(object):
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed):
+        # set inputs
+        self.set_filepaths(veri_unzipped_path)
+        self.num_cams = num_cams
+        self.num_cars_per_cam = num_cars_per_cam
+        self.drop_percentage = drop_percentage
+        self.seed = seed
+        # stuff that needs to be initialized
+        random.seed(seed)
+        self.images = self.__get_images()
+        self.list_of_cameras_per_car = collections.defaultdict(set)
+        self.list_of_cars_per_camera = collections.defaultdict(set)
+        self.list_of_cars = collections.defaultdict(list)
 
-    drop_percentage = 30
+    def set_filepaths(self, veri_unzipped_path):
+        self.name_query_filepath = veri_unzipped_path + Veri.name_query_filepath
+        self.name_test_filepath = veri_unzipped_path + Veri.name_test_filepath
+        self.name_train_filepath = veri_unzipped_path + Veri.name_train_filepath
+        self.image_query_filepath = veri_unzipped_path + Veri.image_query_filepath
+        self.image_test_filepath = veri_unzipped_path + Veri.image_test_filepath
+        self.image_train_filepath = veri_unzipped_path + Veri.image_train_filepath
 
-    seed = 11
+    def __merge_names(self, *filepaths):
+        names = set()
+        for filepath in filepaths:
+            # determine image's type and directory
+            if Veri.name_query_filepath in filepath:
+                img_type = "query"
+                img_dir = self.image_query_filepath
+            elif Veri.name_test_filepath in filepath:
+                img_type = "test"
+                img_dir = self.image_test_filepath
+            else:
+                img_type = "train"
+                img_dir = self.image_train_filepath
+            # put all the names in the file into a set
+            this_set = set(Image(name.strip(), img_dir, img_type) for name in open(filepath))
+            # combine with the previous list of names
+            names = names.union(this_set)
+        return names
 
-    # -------------------------------------------------------------------------
-    
-    random.seed(seed)
+    def __get_images(self):
+        return self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath)
 
-    car_id = select_target_car(num_cams)
-    camsets = collections.defaultdict()
-    cam_ids = select_cameras(num_cams)
+    def get_images(self):
+        return self.images
 
+    def __unset_lists(self):
+        self.list_of_cameras_per_car = collections.defaultdict(set)
+        self.list_of_cars_per_camera = collections.defaultdict(set)
+        self.list_of_cars = collections.defaultdict(list)
 
-    
-    return 
+    def __set_lists(self):
+        # TODO: figure out a better way to go about doing this
+        # list_of_cameras_per_car: extract a list of distinct cameras that spot the car
+        # list_of_cars_per_camera: extract a list of cars that the camera spots
+        # 
+        for image in self.images:
+            car_id = image.get_car_id()
+            camera_id = image.get_camera_id()
+            self.list_of_cameras_per_car[car_id].add(camera_id)
+            self.list_of_cars_per_camera[camera_id].add(car_id)
+            self.list_of_cars[car_id].append(image)
 
+    def __set_target_car(self):
+        # count the number of times distinct cameras spot the car
+        # has to be greater than equal to num_cams, or not drop percentage is going to be higher
+        list_valid_target_cars = []
+        for car_id, camera_ids in self.list_of_cameras_per_car.items():
+            if len(camera_ids) >= self.num_cams:
+                list_valid_target_cars.append(car_id)
+        # return a car id
+        return random.choice(list_valid_target_cars)
 
+    def get_target_car(self):
+        return self.target_car
+
+    def __get_camset(self):
+        num_imgs_per_camset = self.num_cars_per_cam
+        camset = set()
+        # determine whether or not to add the target car
+        if not should_drop(self.drop_percentage):
+            num_imgs_per_camset = num_imgs_per_camset - 1
+            target_car_img = random.choice(self.list_of_cars[self.target_car])
+            camset.add(target_car_img)
+        # grab images
+        random_cam = random.choice(list(self.list_of_cameras_per_car[self.target_car]))
+        for i in range(0, num_imgs_per_camset):
+            random_car = random.choice(list(self.list_of_cars_per_camera[random_cam]))
+            random_car_img = random.choice(self.list_of_cars[random_car])
+            camset.add(random_car_img)
+        # return camset
+        return camset
+
+    def generate(self):
+        self.__set_lists()
+        self.target_car = self.__set_target_car()
+        output = list()
+        for i in range(0, self.num_cams):
+            output.append(self.__get_camset())
+        self.__unset_lists()
+        return output
+
+class Image(object):
+    """ Assume image's name is in the format of carId_cameraId_timestamp_binary.jpg
+    """
+    def __init__(self, img_name, img_dir, img_type):
+        self.name = img_name
+        self.filepath = img_dir + "/" + img_name
+        self.type = img_type
+        self.__splitter = self.name.split("_")
+        self.car_id = self.__set_car_id()
+        self.camera_id = self.__set_camera_id()
+        self.timestamp = self.__set_timestamp()
+        self.binary = self.__set_binary()
+
+    def get_name(self):
+        return self.name
+
+    def __set_car_id(self):
+        car_id = int(self.__splitter[0])
+        return car_id
+
+    def get_car_id(self):
+        return self.car_id
+
+    def __set_camera_id(self):
+        camera_id = int(get_numeric(self.__splitter[1]))
+        return camera_id
+
+    def get_camera_id(self):
+        return self.camera_id
+
+    def __set_timestamp(self):
+        timestamp = datetime.datetime.fromtimestamp(int(self.__splitter[2]))
+        return timestamp
+
+    def get_timestamp(self):
+        return self.timestamp
+
+    def get_timestamp_in_str(self):
+        # Year-Month-Date Hour:Minute:Second
+        return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    def __set_binary(self):
+        binary = int(os.path.splitext(self.__splitter[3])[0])
+        return binary
+
+    def get_binary(self):
+        return binary
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+# -----------------------------------------------------------------------------
+#  Helper Functions
+# -----------------------------------------------------------------------------
+
+def get_numeric(string):
+    """ Extract the numeric value in a string.
+    Args:
+        string
+    Returns:
+        a string with only the numeric value extracted
+    """
+    return re.sub('[^0-9]','', string)
 
 def should_drop(drop_percentage):
     """ Based on the given percentage, provide an answer 
@@ -61,99 +215,38 @@ def select_cameras(num_cams):
     """
     return random.sample(range(1, 21), num_cams)
 
-# TODO: fix this to include camera!
-def select_cars(num_cars, car_id_exception):
-    """ Select car ids based on the number of cars specified. Do not
-    include car_id_exception in the list.
-    Args:
-        num_cars: number of cars
-
-    Returns:
-        a list of car ids
-    """
-    valid_car_ids = list(range(1, 777))
-    valid_car_ids.remove(car_id_exception)
-    return random.sample(valid_car_ids, num_cars)
-
-def select_target_car(num_cams):
-    """ Select the target car for the experiment. The number of times the
-    car is spotted by distinct cameras must be equal or greater than the 
-    number of cameras (num_cams). num_cats create the number of 
-    camera sets (camset) to return. If there are more camera sets than 
-    there are the number of times the car is spotted, the drop percentage 
-    is going to be higher. 
-    Args:
-        num_cams: 
-    Returns:
-        the car id of the target car
-    """
-    return random.randrange(1, 777)
-
-def clean_num_spotted(num_cams):
-    """ Only list cars who gets spotted at a specified num_cams or greater.
-    Args:
-    Returns:
-        a counter that 
-    """
-
-# TODO: put this at initial state, you don't want to call this function multiple times
-def get_num_spotted(img_names):
-    """ Assuming that image name is in the format of carId_cameraId_timeId_binary.jpg, 
-    count the number of times the car gets spotted by a distinct camera.
-    Args:
-        img_names: list of image names
-    Returns:
-        a counter that lists the number of times each car gets spotted by a camera
-    """
-    # extract a list of distinct cameras that spot the car
-    cams_spotted = collections.defaultdict(set)
-    for img_name in img_names:
-        splitter = img_name.split('_')
-        car_id = int(splitter[0])
-        camera_id = int(get_numeric(splitter[1]))
-        cams_spotted[car_id].add(camera_id)
-    # -------------------------------------------------------------------------
-    # TODO: if speed is crucial, remove the following and use len() during call 
-    # to determine number of times distinct cameras spot the car
-    # -------------------------------------------------------------------------
-    # count the number of times distinct cameras spot the car
-    num_spotted = collections.Counter()
-    for k, v in cams_spotted.items():
-        num_spotted[k] = len(v)
-    return num_spotted
-
-def get_numeric(string):
-    """ Extract the numeric value in a string.
-    Args:
-        string
-    Returns:
-        a string with only the numeric value extracted
-    """
-    return re.sub('[^0-9]','', string)
-     
-def merge_names(*filepaths):
-    """ Each file contains an image name per line. Merge all the image names
-    in all the files so that we have a comprehensive list of image names.
-    Since the data is not growing, store the names in a set for faster lookup.
-    Args: 
-        filepaths: paths to the files that contain an image name in each line
-    Returns: 
-        a set that contains the names of all the images
-    """
-    names = set()
-    for filepath in filepaths:
-        names = names.union(set(line.strip() for line in open(filepath)))
-    return names
-
 # -----------------------------------------------------------------------------
-#  Check inputs
+#  Execution
 # -----------------------------------------------------------------------------
 
+def main():
+    # inputs
+    veri_unzipped_path = ""
+    num_cams = 5
+    num_cars_per_cam = 3
+    drop_percentage = 30
+    seed = 11
+
+    # create the generator
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed)
+
+    # generate the experiment
+    """
+    for i in exp.get_images():
+        print("%s: %s: %s: %s: %s: %s: %s" % (i.name, i.filepath, i.type, i.car_id, i.camera_id, i.get_timestamp_in_str(), i.binary))
+    print(len(exp.get_images()))
+    """
+    #print(exp.get_target_car())
+    print(exp.generate())
+    for camset in exp.generate():
+        for i in camset:
+            print("%s: %s: %s: %s: %s: %s: %s" % (i.name, i.filepath, i.type, i.car_id, i.camera_id, i.get_timestamp_in_str(), i.binary))
+
+    return 
 
 # -----------------------------------------------------------------------------
 #  Entry
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    veri_unzipped_path = ""
-    main(veri_unzipped_path)
+    main()
