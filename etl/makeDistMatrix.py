@@ -50,6 +50,8 @@ def my_dist(workList):
     return (retval)
 
 
+# takes in a json file with vectors and creates all the pairwise
+# distance calculations, saves output to file
 def main(pworkers=15, atOnceOuter=100000, atOnceInner=10000):
 
     inFileName = sys.argv[1]
