@@ -1,6 +1,6 @@
 """ Generate sets of images for experiment
 
-The script will build a list of sets for the experiment.
+This script will build a list of sets (of images) for the experiment.
 
 Input:
     We use VeRi dataset that contains the following information:
@@ -17,10 +17,14 @@ Output:
     Within each set, it will contain a list of images based on the number of cars per camera specified.
     These images are stored inside an Image object.
     The target car, which will be randomly selected, will exist in each set depending on the drop rate.
+    If it's not dropped, it will exist as the first index in the set.
+    Currently, each set contains distinct car ids. If you uncommented the code section in 
+    ExperimentGenerator's __get_camset(), it will generate a set with repeated car ids that are at least
+    MINUTES apart specified by the user.
     For example:
-    * num_cams =  10, which means we will create 10 camera sets
+    * num_cams = 10, which means we will create 10 camera sets
     * num_cars_per_cam = 5, which means we will have 5 Image objects within the set
-    * drop = 0.3, which means it will be dropped 30% of the time
+    * drop = 0.3, which means the target car will be dropped 30% of the time
 
     [
      set(Image(target_car), Image(1), Image(2), Image(3), Image(4)), # set 1
@@ -37,7 +41,7 @@ Output:
 
 Usage:
     experiment.py [-hv]
-    experiment.py [ --otherMetric ] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> <INPUT_PATH>
+    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> -y <TYPE> <INPUT_PATH>
 
 Arguments:
     INPUT_PATH                      : Path to the VeRi dataset unzipped
@@ -50,7 +54,8 @@ Options:
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
     -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
-    --otherMetric                   : Use the other metric for comparing images
+    -y, --type=<TYPE>               : Determine which type of images to use. 
+                                      0: all, 1: query, 2: test, 3: train 
 
 """
 
@@ -62,51 +67,33 @@ import random
 import re
 import sys
 
-
-class Veri(object):
-    """ Structure of the Veri dataset unzipped and miscellaneous information
-    """
-    name_query_filepath = "name_query.txt"
-    name_test_filepath = "name_test.txt"
-    name_train_filepath = "name_train.txt"
-    image_query_filepath = "image_query"
-    image_test_filepath = "image_test"
-    image_train_filepath = "image_train"
-    ground_truth_filepath = "gt_image.txt"
-    junk_images_filepath = "jk_image.txt"
-    train_label_filepath = "train_label.xml"
-    num_cars = 776
-    num_cams = 20
-    num_query_images = 1679
-    num_test_images = 11580
-    num_train_images = 37779
-    total_images = 49358
+from utils import *
 
 
 class ExperimentGenerator(object):
-    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, otherMetric):
-        # set inputs
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ):
+        # set inputs         
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
         self.seed = seed
         self.time = time
-        self.otherMetric = otherMetric
+        self.typ = typ
         # stuff that needs to be initialized
-        random.seed(seed)
+        random.seed(self.seed)
         self.images = self.__get_images()
         self.list_of_cameras_per_car = collections.defaultdict(set)
         self.list_of_cars_per_camera = collections.defaultdict(set)
         self.list_of_cars = collections.defaultdict(list)
 
     def set_filepaths(self, veri_unzipped_path):
-        self.name_query_filepath = veri_unzipped_path + Veri.name_query_filepath
-        self.name_test_filepath = veri_unzipped_path + Veri.name_test_filepath
-        self.name_train_filepath = veri_unzipped_path + Veri.name_train_filepath
-        self.image_query_filepath = veri_unzipped_path + Veri.image_query_filepath
-        self.image_test_filepath = veri_unzipped_path + Veri.image_test_filepath
-        self.image_train_filepath = veri_unzipped_path + Veri.image_train_filepath
+        self.name_query_filepath = veri_unzipped_path + "/" +  Veri.name_query_filepath
+        self.name_test_filepath = veri_unzipped_path + "/" + Veri.name_test_filepath
+        self.name_train_filepath = veri_unzipped_path + "/" + Veri.name_train_filepath
+        self.image_query_filepath = veri_unzipped_path + "/" + Veri.image_query_filepath
+        self.image_test_filepath = veri_unzipped_path + "/" + Veri.image_test_filepath
+        self.image_train_filepath = veri_unzipped_path + "/" + Veri.image_train_filepath
 
     def __merge_names(self, *filepaths):
         names = set()
@@ -128,7 +115,13 @@ class ExperimentGenerator(object):
         return names
 
     def __get_images(self):
-        return self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath)
+        return {
+            0: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
+            1: self.__merge_names(self.name_query_filepath),
+            2: self.__merge_names(self.name_test_filepath),
+            3: self.__merge_names(self.name_train_filepath),
+        }.get(self.typ) 
+        #}.get(self.typ, 0) # default to all 
 
     def __set_lists(self):
         # TODO: figure out a better way to go about doing this
@@ -149,34 +142,44 @@ class ExperimentGenerator(object):
 
     def __set_target_car(self):
         # count the number of times distinct cameras spot the car
-        # has to be greater than equal to num_cams, or not drop percentage is going to be higher
+        # has to be greater than or equal to num_cams, or not drop percentage is going to be higher
         list_valid_target_cars = []
         for car_id, camera_ids in self.list_of_cameras_per_car.items():
             if len(camera_ids) >= self.num_cams:
                 list_valid_target_cars.append(car_id)
-        # return a car id
-        return random.choice(list_valid_target_cars)
+        # get the target car
+        car_id = random.choice(list_valid_target_cars)
+        self.target_car = random.choice(self.list_of_cars[car_id])
+
 
     def __get_camset(self):
         num_imgs_per_camset = self.num_cars_per_cam
         camset = set()
-        # determine whether or not to add the target car
+        which_camera_id = self.target_car.camera_id
+        # determine whether or not to add a different target car image
         if not should_drop(self.drop_percentage):
             num_imgs_per_camset = num_imgs_per_camset - 1
-            target_car_img = random.choice(self.list_of_cars[self.target_car])
-            camset.add(target_car_img)
+            while True:
+                # WARNING: If the car is only taken by one camera, this will go into an infinite loop
+                similar_target_car = random.choice(self.list_of_cars[self.target_car.car_id])
+                # make sure the car is taken by a different camera
+                if self.target_car.camera_id != similar_target_car.camera_id:
+                    break
+            which_camera_id = similar_target_car.camera_id
+            camset.add(similar_target_car)
         # grab images
-        random_cam = random.choice(list(self.list_of_cameras_per_car[self.target_car]))
         exist_car = list()
-        exist_timestamp = list()
+        #exist_timestamp = list()
         for i in range(0, num_imgs_per_camset):
             while True:
-                random_car = random.choice(list(self.list_of_cars_per_camera[random_cam]))
+                # WARNING: If the dataset only contains one car, this will go into an infinite loop
+                random_car = random.choice(list(self.list_of_cars_per_camera[which_camera_id]))
                 random_car_img = random.choice(self.list_of_cars[random_car])
                 # check if same car already existed
                 if(random_car_img.car_id not in exist_car):
                     # different car
                     break
+                """
                 else:
                     # same car already exists, make sure the timestamp is greater than 5 minutes
                     old_timestamp = exist_timestamp[exist_car.index(random_car_img.car_id)]
@@ -184,8 +187,9 @@ class ExperimentGenerator(object):
                     valid_timestamp = abs(new_timestamp - old_timestamp) / datetime.timedelta(minutes=1)
                     if valid_timestamp > self.time:
                         break
+                """
             exist_car.append(random_car_img.car_id)
-            exist_timestamp.append(random_car_img.timestamp)
+            #exist_timestamp.append(random_car_img.timestamp)
             camset.add(random_car_img)
             # see if the image added is the same and if it is check the timestamp
         # return camset
@@ -193,7 +197,7 @@ class ExperimentGenerator(object):
 
     def generate(self):
         self.__set_lists()
-        self.target_car = self.__set_target_car()
+        self.__set_target_car()
         output = list()
         for i in range(0, self.num_cams):
             output.append(self.__get_camset())
@@ -224,31 +228,6 @@ class Image(object):
         return self.name == other.name
 
 # -----------------------------------------------------------------------------
-#  Helper functions
-# -----------------------------------------------------------------------------
-
-
-def get_numeric(string):
-    """ Extract the numeric value in a string.
-    Args:
-        string
-    Returns:
-        a string with only the numeric value extracted
-    """
-    return re.sub('[^0-9]', '', string)
-
-
-def should_drop(drop_percentage):
-    """ Based on the given percentage, provide an answer
-    whether or not to drop the image.
-    Args:
-        drop_percentage: the likelihood of a drop in the form of a float from [0,1]
-    Returns:
-        a boolean whether to drop or not drop the image
-    """
-    return random.random() < drop_percentage
-
-# -----------------------------------------------------------------------------
 #  Execution example
 # -----------------------------------------------------------------------------
 
@@ -262,20 +241,16 @@ def main(args):
         drop_percentage = float(args["--drop"])
         seed = int(args["--seed"])
         time = int(args["--time"])
-        otherMetric = bool(args["--otherMetric"])
-
-        if otherMetric:
-            print('Enabling computation of otherMetric, num_cams = 2\n')
-            # override the number of cameras, ignore the first camera
-            # for comparison
-            num_cams = 2
-
-
+        typ = int(args["--type"])
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 
+    # check that input_path points to a directory
+    if not os.path.exists(veri_unzipped_path) or not os.path.isdir(veri_unzipped_path):
+        sys.exit("ERROR: filepath to VeRi directory (%s) is invalid" % veri_unzipped_path)
+
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, otherMetric)
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ)
 
     # generate the experiment
     set_num = 1
