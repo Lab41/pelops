@@ -65,6 +65,7 @@ def process(trainingList, prefix, model, outFilename, batchSize=1000):
     outFile.close()
 
 
+# read json file append feature vector to each line dict
 def main():
     prefix = sys.argv[1]
     lineFilename = sys.argv[2]
