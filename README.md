@@ -25,4 +25,10 @@ They can also be tested using:
 TODO
 
 # Contributing to Pelops
-Want to contribute?  Awesome!  Issue a pull request or see more details 
+
+Want to contribute?  Awesome!
+
+Please makesure you have [`pre-commit`](http://pre-commit.com/) installed so
+that your code is checked for various issues.
+
+After that, send us a pull request! We're happy to review them!
