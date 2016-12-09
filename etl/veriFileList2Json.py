@@ -18,7 +18,7 @@ def main():
         d['cameraID'] = attrs[1]
         d['colorID'] = str(-1)
         d['typeID'] = str(-1)
-        outFile.write(d+'\n')
+        outFile.write(json.dumps(d)+'\n')
     inFile.close()
 
 
