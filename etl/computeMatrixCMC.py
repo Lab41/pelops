@@ -1,6 +1,7 @@
 import json
-from collections import defaultdict
 import time
+from collections import defaultdict
+
 from matplotlib import pyplot
 
 
@@ -81,7 +82,7 @@ def computeCMC(rawCounts, num):
     for index in range(0, len(idx)):
         sum += rawCounts[index]
         print (index, sum)
-        CMC.append(sum/float(num))
+        CMC.append(sum / float(num))
     return CMC
 
 
@@ -95,3 +96,4 @@ CMC = computeCMC(rawCounts, len(Matrix[0]))
 # pyplot.ylim(0,1)
 pyplot.plot(CMC[:-1])
 pyplot.show()
+stuff = '123qweasdTEST laksjdflaskjdflkj'
