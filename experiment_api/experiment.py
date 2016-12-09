@@ -37,7 +37,7 @@ Output:
 
 Usage:
     experiment.py [-hv]
-    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> <INPUT_PATH>
+    experiment.py [ --otherMetric ] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> <INPUT_PATH>
 
 Arguments:
     INPUT_PATH                      : Path to the VeRi dataset unzipped
@@ -50,6 +50,7 @@ Options:
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
     -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
+    --otherMetric                   : Use the other metric for comparing images
 
 """
 
@@ -83,7 +84,7 @@ class Veri(object):
 
 
 class ExperimentGenerator(object):
-    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time):
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, otherMetric):
         # set inputs
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
@@ -91,6 +92,7 @@ class ExperimentGenerator(object):
         self.drop_percentage = drop_percentage
         self.seed = seed
         self.time = time
+        self.otherMetric = otherMetric
         # stuff that needs to be initialized
         random.seed(seed)
         self.images = self.__get_images()
@@ -260,11 +262,20 @@ def main(args):
         drop_percentage = float(args["--drop"])
         seed = int(args["--seed"])
         time = int(args["--time"])
+        otherMetric = bool(args["--otherMetric"])
+
+        if otherMetric:
+            print('Enabling computation of otherMetric, num_cams = 2\n')
+            # override the number of cameras, ignore the first camera
+            # for comparison
+            num_cams = 2
+
+
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time)
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, otherMetric)
 
     # generate the experiment
     set_num = 1
