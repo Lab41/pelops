@@ -96,4 +96,3 @@ CMC = computeCMC(rawCounts, len(Matrix[0]))
 # pyplot.ylim(0,1)
 pyplot.plot(CMC[:-1])
 pyplot.show()
-stuff = '123qweasdTEST laksjdflaskjdflkj'
