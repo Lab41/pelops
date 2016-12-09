@@ -1,3 +1,29 @@
+""" Generate resnet50 features
+
+Input:
+    infile shold be a list of json lines one json/line
+
+Output:
+    appending of resnet50 features to each json line
+
+Usage:
+    makeFeaturesResNet50 [-hv]
+    makeFeaturesResNet50 -i <INPUT_FILENAME> -p <IMAGE_DIR>
+
+Arguments:
+    INPUT_FILENAME        : location of the file to enrich with resnet features
+    IMAGE_DIR             : full path to where the images live
+
+Options:
+    -h, --help            : Show this help message.
+    -v, --version         : Show the version number.
+    -i, --inFile          : input file to enrich with reset fetures
+    -p, --path            : Path to the directory holding the images
+
+
+"""
+
+import docopt
 import numpy as np
 from resnet50 import ResNet50
 from keras.preprocessing import image
@@ -10,7 +36,7 @@ import sys
 
 
 # return an image from a file, default resize to 224,224
-def load_image(img_path,resizex=224, resizey=224):
+def load_image(img_path, resizex=224, resizey=224):
     data = image.load_img(img_path, target_size=(resizex, resizey))
     x = image.img_to_array(data)
     x = np.expand_dims(x, axis=0)
@@ -66,14 +92,19 @@ def process(trainingList, prefix, model, outFilename, batchSize=1000):
 
 
 # read json file append feature vector to each line dict
-def main():
-    prefix = sys.argv[1]
-    lineFilename = sys.argv[2]
-    outFilename = '{0}.resnet50.json'.format(sys.argv[2])
+def main(args):
+    try:
+        lineFileName = args['--inFile']
+        prefix = args['--path']
+
+    except docopt.DocoptExit as e:
+        sys.exit('Error: input invalid options {0}'.format(e))
+
+    outFilename = '{0}.resnet50.json'.format(lineFileName)
     model, base_model = get_models()
 
     print('loading...')
-    trainingList = getList(lineFilename)
+    trainingList = getList(lineFileName)
 
     print('processing...')
     process(trainingList, prefix,  model, outFilename)
@@ -82,4 +113,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = docopt.docopt(__doc__, version='1.0')
+    main(args)
