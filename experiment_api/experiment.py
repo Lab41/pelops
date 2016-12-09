@@ -37,7 +37,7 @@ Output:
 
 Usage:
     experiment.py [-hv]
-    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> <INPUT_PATH>
+    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> -y <TYPE> <INPUT_PATH>
 
 Arguments:
     INPUT_PATH                      : Path to the VeRi dataset unzipped
@@ -50,6 +50,7 @@ Options:
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
     -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
+    -y, --type=<TYPE>               : Determine which type of images to use - 0: all, 1: query, 2: test, 3: train (default: 0)
 
 """
 
@@ -83,7 +84,7 @@ class Veri(object):
 
 
 class ExperimentGenerator(object):
-    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time):
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ):
         # set inputs
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
@@ -91,6 +92,7 @@ class ExperimentGenerator(object):
         self.drop_percentage = drop_percentage
         self.seed = seed
         self.time = time
+        self.typ = typ
         # stuff that needs to be initialized
         random.seed(seed)
         self.images = self.__get_images()
@@ -99,12 +101,12 @@ class ExperimentGenerator(object):
         self.list_of_cars = collections.defaultdict(list)
 
     def set_filepaths(self, veri_unzipped_path):
-        self.name_query_filepath = veri_unzipped_path + Veri.name_query_filepath
-        self.name_test_filepath = veri_unzipped_path + Veri.name_test_filepath
-        self.name_train_filepath = veri_unzipped_path + Veri.name_train_filepath
-        self.image_query_filepath = veri_unzipped_path + Veri.image_query_filepath
-        self.image_test_filepath = veri_unzipped_path + Veri.image_test_filepath
-        self.image_train_filepath = veri_unzipped_path + Veri.image_train_filepath
+        self.name_query_filepath = veri_unzipped_path + "/" +  Veri.name_query_filepath
+        self.name_test_filepath = veri_unzipped_path + "/" + Veri.name_test_filepath
+        self.name_train_filepath = veri_unzipped_path + "/" + Veri.name_train_filepath
+        self.image_query_filepath = veri_unzipped_path + "/" + Veri.image_query_filepath
+        self.image_test_filepath = veri_unzipped_path + "/" + Veri.image_test_filepath
+        self.image_train_filepath = veri_unzipped_path + "/" + Veri.image_train_filepath
 
     def __merge_names(self, *filepaths):
         names = set()
@@ -126,7 +128,12 @@ class ExperimentGenerator(object):
         return names
 
     def __get_images(self):
-        return self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath)
+        return {
+            0: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
+            1: self.__merge_names(self.name_query_filepath),
+            2: self.__merge_names(self.name_test_filepath),
+            3: self.__merge_names(self.name_train_filepath),
+        }.get(self.typ, 0)
 
     def __set_lists(self):
         # TODO: figure out a better way to go about doing this
@@ -210,10 +217,14 @@ class Image(object):
         self.camera_id = int(get_numeric(self.__splitter[1]))
         self.timestamp = datetime.datetime.fromtimestamp(int(self.__splitter[2]))
         self.binary = int(os.path.splitext(self.__splitter[3])[0])
+        self.vector = None
 
     def get_timestamp(self):
         # Year-Month-Date Hour:Minute:Second
         return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    def set_vector(self, vector):
+        self.vector = vector
 
     def __hash__(self):
         return hash(self.name)
@@ -260,11 +271,12 @@ def main(args):
         drop_percentage = float(args["--drop"])
         seed = int(args["--seed"])
         time = int(args["--time"])
+        typ = int(args["--type"])
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time)
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ)
 
     # generate the experiment
     set_num = 1
