@@ -37,7 +37,7 @@ Output:
 
 Usage:
     experiment.py [-hv]
-    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -e <SEED> <INPUT_PATH>
+    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> <INPUT_PATH>
 
 Arguments:
     INPUT_PATH                      : Path to the VeRi dataset unzipped
@@ -49,6 +49,7 @@ Options:
     -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
+    -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
 
 """
 
@@ -82,13 +83,14 @@ class Veri(object):
 
 
 class ExperimentGenerator(object):
-    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed):
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time):
         # set inputs
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
         self.seed = seed
+        self.time = time
         # stuff that needs to be initialized
         random.seed(seed)
         self.images = self.__get_images()
@@ -178,7 +180,7 @@ class ExperimentGenerator(object):
                     old_timestamp = exist_timestamp[exist_car.index(random_car_img.car_id)]
                     new_timestamp = random_car_img.timestamp
                     valid_timestamp = abs(new_timestamp - old_timestamp) / datetime.timedelta(minutes=1)
-                    if valid_timestamp > 5:
+                    if valid_timestamp > self.time:
                         break
             exist_car.append(random_car_img.car_id)
             exist_timestamp.append(random_car_img.timestamp)
@@ -257,11 +259,12 @@ def main(args):
         num_cars_per_cam = int(args["--cars"])
         drop_percentage = float(args["--drop"])
         seed = int(args["--seed"])
+        time = int(args["--time"])
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed)
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time)
 
     # generate the experiment
     set_num = 1
