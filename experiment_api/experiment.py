@@ -62,6 +62,7 @@ import random
 import re
 import sys
 
+from utils import *
 
 class Veri(object):
     """ Structure of the Veri dataset unzipped and miscellaneous information
@@ -85,7 +86,7 @@ class Veri(object):
 
 class ExperimentGenerator(object):
     def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ):
-        # set inputs
+        # set inputs         
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
@@ -94,7 +95,7 @@ class ExperimentGenerator(object):
         self.time = time
         self.typ = typ
         # stuff that needs to be initialized
-        random.seed(seed)
+        random.seed(self.seed)
         self.images = self.__get_images()
         self.list_of_cameras_per_car = collections.defaultdict(set)
         self.list_of_cars_per_camera = collections.defaultdict(set)
@@ -213,9 +214,9 @@ class Image(object):
         self.filepath = img_dir + "/" + img_name
         self.type = img_type
         self.__splitter = self.name.split("_")
-        self.car_id = int(self.__splitter[0])
-        self.camera_id = int(get_numeric(self.__splitter[1]))
-        self.timestamp = datetime.datetime.fromtimestamp(int(self.__splitter[2]))
+        self.car_id = read_car_id(self.__splitter[0])
+        self.camera_id = read_camera_id(self.__splitter[1])
+        self.timestamp = read_timestamp(self.__splitter[2])
         self.binary = int(os.path.splitext(self.__splitter[3])[0])
         self.vector = None
 
@@ -231,31 +232,6 @@ class Image(object):
 
     def __eq__(self, other):
         return self.name == other.name
-
-# -----------------------------------------------------------------------------
-#  Helper functions
-# -----------------------------------------------------------------------------
-
-
-def get_numeric(string):
-    """ Extract the numeric value in a string.
-    Args:
-        string
-    Returns:
-        a string with only the numeric value extracted
-    """
-    return re.sub('[^0-9]', '', string)
-
-
-def should_drop(drop_percentage):
-    """ Based on the given percentage, provide an answer
-    whether or not to drop the image.
-    Args:
-        drop_percentage: the likelihood of a drop in the form of a float from [0,1]
-    Returns:
-        a boolean whether to drop or not drop the image
-    """
-    return random.random() < drop_percentage
 
 # -----------------------------------------------------------------------------
 #  Execution example
