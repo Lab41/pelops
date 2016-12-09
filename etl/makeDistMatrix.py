@@ -1,3 +1,31 @@
+""" make the data for comparing entity id
+
+Input:
+       processsed json file containing the list of images to compare
+       the file must contain the 'resnet50' feature vector
+
+Output:
+       all pairs comparison between images using resnet50
+       output file lines will have the form of json dict
+       dict will contain the following keys
+       x - image name of the first image in comparison
+       y - image name of the second image in comparison
+       cosine - cosine distance bewteen the images
+       euclidean - euclidian distance between the images
+
+Usage:
+    makeDistMatrix [-hv]
+    makeDistMatrix -i <INPUT_FILE> [-w <WORKERS>]
+
+Arguments:
+    INPUT_FILE                   :file of the json description of the VeRi files
+    WORKERS                      :number of threads in the pool
+
+Options:
+    -i, --inputFile=<INPUT_FILE> :file location of the input
+    -w,--workers=<WORKERS>       :num of workers in threadpool [default: 10]
+"""
+import docopt
 import json
 import sys
 from multiprocessing import Pool
@@ -52,7 +80,12 @@ def my_dist(workList):
 
 # takes in a json file with vectors and creates all the pairwise
 # distance calculations, saves output to file
-def main(pworkers=15, atOnceOuter=100000, atOnceInner=10000):
+def main(args, atOnceOuter=100000, atOnceInner=10000):
+    try:
+        pworkers = args['--workers']
+        inFileName = args['--inputFile']
+    except docopt.DocoptExit as e:
+        sys.exit('ERROR: input invalid options {0}'.format(e))
 
     inFileName = sys.argv[1]
     work = makeWork(inFileName)
@@ -84,4 +117,5 @@ def main(pworkers=15, atOnceOuter=100000, atOnceInner=10000):
     matrixFile.close()
 
 if __name__ == '__main__':
+    args = docopt.docopt(__doc__,version='makeDistMatrix 1.0')
     main()
