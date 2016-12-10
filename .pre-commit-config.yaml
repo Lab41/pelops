@@ -4,7 +4,7 @@
     -   id: validate_config
 
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 3fa02652357ff0dbb42b5bc78c673b7bc105fcf3
+    sha: 96fb7fa10f2f4c11ed33482a9ad7474251e5e97f
     hooks:
     -   id: autopep8-wrapper
     -   id: check-case-conflict
@@ -17,8 +17,11 @@
     -   id: pretty-format-json
         args: ['--autofix']
     -   id: trailing-whitespace
-
 -   repo: git@github.com:asottile/reorder_python_imports
     sha: v0.3.0
     hooks:
     -   id: reorder-python-imports
+-   repo: git@github.com:Lab41/verboten_words.git
+    sha: f07c2c0116d0bd6466dde6af4ef9bca5531d6cc7
+    hooks:
+    -   id: verboten-words
