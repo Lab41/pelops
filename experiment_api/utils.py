@@ -1,7 +1,37 @@
 import datetime
 import json
+import logging
 import random
 import re
+import time
+
+class Veri(object):
+    """ Structure of the Veri dataset unzipped and miscellaneous information
+    """
+    name_query_filepath = "name_query.txt"
+    name_test_filepath = "name_test.txt"
+    name_train_filepath = "name_train.txt"
+    image_query_filepath = "image_query"
+    image_test_filepath = "image_test"
+    image_train_filepath = "image_train"
+    ground_truth_filepath = "gt_image.txt"
+    junk_images_filepath = "jk_image.txt"
+    train_label_filepath = "train_label.xml"
+    num_cars = 776
+    num_cams = 20
+    num_query_images = 1679
+    num_test_images = 11580
+    num_train_images = 37779
+    total_images = 49358
+
+
+class ImageType(object):
+    """ Types of images
+    """
+    ALL = 0
+    QUERY = 1
+    TEST = 2
+    TRAIN = 3
 
 
 def get_numeric(string):
@@ -66,3 +96,18 @@ def read_json(filepath):
     with open(filepath) as file:
         for line in file:
             yield json.loads(line)
+
+
+def timeit(func, *args, **kwargs):
+    """ This is a wrapper function to calculate how fast each operation takes.
+    Note that we are assuming that we do not need to do anything with the return
+    value of the function.
+    Args: 
+        func: function pointer
+        args: arguments to the function
+        kwargs: named arguments not defined in advance to be passed in to the function
+    """
+    start = time.time()
+    func(*args, **kwargs)
+    elapsed = time.time() - start
+    return elapsed

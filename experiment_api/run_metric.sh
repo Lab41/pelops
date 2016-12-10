@@ -1,1 +1,1 @@
-python3 metric.py -e 11 -y 2 -r 10000 "/net/dev-vsrv-fs4.b.internal/data1/teams/pelops/veri_unzipped"
+python3 metric.py -c -l -y 2 -r 5 "/path/to/veri/dataset" "/path/to/image/feature/json/file"
