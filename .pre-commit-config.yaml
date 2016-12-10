@@ -1,16 +1,22 @@
+-   repo: https://github.com/pre-commit/pre-commit
+    sha: 8837cfa7ffcc419216d4e01392cee0f1ceee9c88
+    hooks:
+    -   id: validate_config
+
 -   repo: git@github.com:pre-commit/pre-commit-hooks
     sha: 96fb7fa10f2f4c11ed33482a9ad7474251e5e97f
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
     -   id: autopep8-wrapper
     -   id: check-case-conflict
     -   id: check-json
-    -   id: pretty-format-json
-        args:
-        - --autofix
-    -   id: double-quote-string-fixer
+    -   id: check-merge-conflict
+    -   id: check-symlinks
     -   id: check-yaml
+    -   id: double-quote-string-fixer
+    -   id: end-of-file-fixer
+    -   id: pretty-format-json
+        args: ['--autofix']
+    -   id: trailing-whitespace
 -   repo: git@github.com:asottile/reorder_python_imports
     sha: v0.3.0
     hooks:

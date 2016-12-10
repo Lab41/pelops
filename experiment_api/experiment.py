@@ -246,7 +246,7 @@ def should_drop(drop_percentage):
     Returns:
         a boolean whether to drop or not drop the image
     """
-    return random.randrange(100) < (100 - drop_percentage * 100)
+    return random.random() < drop_percentage
 
 # -----------------------------------------------------------------------------
 #  Execution example
