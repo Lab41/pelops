@@ -22,6 +22,6 @@
     hooks:
     -   id: reorder-python-imports
 -   repo: git@github.com:Lab41/verboten_words.git
-    sha: f07c2c0116d0bd6466dde6af4ef9bca5531d6cc7
+    sha: v1.0.0
     hooks:
     -   id: verboten-words
