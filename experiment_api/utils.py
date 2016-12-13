@@ -36,10 +36,20 @@ class ImageType(object):
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
+    """ Determine how far through the list to find the value. 
+    If the value does not exist in the list, then return the
+    length of the list.
+    Args:
+        list_of_tuple: a list of tuples i.e. [(index1, index2)]
+        index_of_tuple: which index in the tuple you want to compare the value to
+        value: the value to search
+    Return:
+        the number of items in the list it has compared
+    """
     for index_of_list, tupl in enumerate(list_of_tuple):
         if tupl[index_of_tuple] == value:
             return index_of_list + 1
-    # could not find value in list_of_tuple
+    # could not find value in list_of_tuple, so return length of tuple
     return len(list_of_tuple)
 
 
@@ -64,33 +74,40 @@ def should_drop(drop_percentage):
     return random.random() < drop_percentage
 
 
-def read_camera_id(camera_id):
-    """ Assuming that camera_id is a string in the format of c001,
-    convert camera_id into an int.
+def read_camera_id(name):
+    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
+    find the camera_id in name and convert it into an int.
     Args:
-        camera_id: string in the format of c001
+        name: string in the format of 0002_c002_00030670_0.jpg
     Returns:
         an int value of camera_id
     """
-    return int(get_numeric(camera_id))
+    splitter = name.split("_")
+    return int(get_numeric(splitter[3]))
 
 
-def read_car_id(car_id):
-    """ Assuming that car_id is a string in the format of 0001,
-    convert car_id into an int.
+def read_car_id(name):
+    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
+    find the car_id in name and convert it into an int.
     Args:
-        car_id: string in the format of 0001
+        name: string in the format of 0002_c002_00030670_0.jpg
     Returns:
         an int value of car_id
     """
-    return int(car_id)
+    splitter = name.split("_")
+    return int(splitter[0])
 
 
-def read_timestamp(timestamp):
-    """ Assuming that timestamp is a unix timestamp string,
-    convert it into a datetime object.
-    """
-    return datetime.datetime.fromtimestamp(int(timestamp))
+def read_timestamp(name):
+    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
+    find the timestamp in name and convert it into a datetime object.
+    Args:
+        name: string in the format of 0002_c002_00030670_0.jpg
+    Returns:
+        a datetime object of timestamp
+    """    
+    splitter = name.split("_")
+    return datetime.datetime.fromtimestamp(int(splitter[2]))
 
 
 def read_json(filepath):
@@ -106,8 +123,9 @@ def read_json(filepath):
         for line in file:
             yield json.loads(line)
 
+
 def timewrapper(func):
-    """ This is a decorator function to calculate how fast each operation takes.
+    """ This is a decorator to calculate how fast each operation takes.
     Args: 
         func: function pointer
         args: arguments to the function

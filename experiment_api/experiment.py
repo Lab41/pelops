@@ -84,7 +84,7 @@ class ExperimentGenerator(object):
         random.seed(self.seed)
         self.images = self.__get_images()
         self.list_of_cameras_per_car = collections.defaultdict(set)
-        self.list_of_cars_per_camera = collections.defaultdict(set)
+        self.list_of_car_names_per_camera = collections.defaultdict(set)
         self.list_of_cars = collections.defaultdict(list)
 
     def set_filepaths(self, veri_unzipped_path):
@@ -126,18 +126,18 @@ class ExperimentGenerator(object):
     def __set_lists(self):
         # TODO: figure out a better way to go about doing this
         # list_of_cameras_per_car: map each car with a list of distinct cameras that spot the car
-        # list_of_cars_per_camera: map each camera with a list of cars it spots
+        # list_of_car_names_per_camera: map each camera with a list of cars it spots
         # list_of_cars: map each car with its respective images
         for image in self.images:
             car_id = image.car_id
             camera_id = image.camera_id
             self.list_of_cameras_per_car[car_id].add(camera_id)
-            self.list_of_cars_per_camera[camera_id].add(car_id)
+            self.list_of_car_names_per_camera[camera_id].add(image.name)
             self.list_of_cars[car_id].append(image)
 
     def __unset_lists(self):
         self.list_of_cameras_per_car = collections.defaultdict(set)
-        self.list_of_cars_per_camera = collections.defaultdict(set)
+        self.list_of_car_names_per_camera = collections.defaultdict(set)
         self.list_of_cars = collections.defaultdict(list)
 
     def __set_target_car(self):
@@ -151,11 +151,10 @@ class ExperimentGenerator(object):
         car_id = random.choice(list_valid_target_cars)
         self.target_car = random.choice(self.list_of_cars[car_id])
 
-    # TODO: make sure that each car has the same camera
     def __get_camset(self):
         num_imgs_per_camset = self.num_cars_per_cam
         camset = set()
-        which_camera_id = self.target_car.camera_id
+        which_camera_id = random.randint(1, 20)
         # determine whether or not to add a different target car image
         if not should_drop(self.drop_percentage):
             num_imgs_per_camset = num_imgs_per_camset - 1
@@ -165,7 +164,6 @@ class ExperimentGenerator(object):
                 # make sure the car is taken by a different camera
                 if self.target_car.camera_id != similar_target_car.camera_id:
                     break
-                print("first")
             which_camera_id = similar_target_car.camera_id
             camset.add(similar_target_car)
         # grab images
@@ -174,13 +172,12 @@ class ExperimentGenerator(object):
         for i in range(0, num_imgs_per_camset):
             while True:
                 # WARNING: If the dataset only contains one car, this will go into an infinite loop
-                random_car = random.choice(list(self.list_of_cars_per_camera[which_camera_id]))
-                random_car_img = random.choice(self.list_of_cars[random_car])
+                random_car_name = random.choice(list(self.list_of_car_names_per_camera[which_camera_id]))
+                random_car_img = random.choice(list(img for img in self.list_of_cars[read_car_id(random_car_name)] if img.name == random_car_name))
                 # check if same car already existed
                 if(random_car_img.car_id not in exist_car):
                     # different car
                     break
-                print("second")
                 """
                 else:
                     # same car already exists, make sure the timestamp is greater than 5 minutes
@@ -258,11 +255,11 @@ def main(args):
     set_num = 1
     print("=" * 80)
     for camset in exp.generate():
+        print("Target car: {}".format(exp.target_car.name))
         print("Set #{}".format(set_num))
         print("-" * 80)
         for image in camset:
             print("name: {}".format(image.name))
-            """
             print("filepath: {}".format(image.filepath))
             print("type: {}".format(image.type))
             print("car id: {}".format(image.car_id))
@@ -270,7 +267,6 @@ def main(args):
             print("timestamp: {}".format(image.get_timestamp()))
             print("binary: {}".format(image.binary))
             print("-" * 80)
-            """
         print("=" * 80)
         set_num = set_num + 1
     return

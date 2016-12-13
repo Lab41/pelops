@@ -158,7 +158,6 @@ class MetricRunner(object):
             self.logger.debug("Before cosine distance is sorted [(index, cosine_distance)]: {}".format(cosine_distances))
             cosine_distances = sorted(cosine_distances, key=lambda tupl: tupl[COSINE_DISTANCE_INDEX])
             self.logger.debug("After cosine distance is sorted [(index, cosine distance)]: {}".format(cosine_distances))
-            self.logger.info("The index of the image with the shortest cosine distance is: {}".format(cosine_distances[0][0]))
             first_rank = get_index_of_tuple(cosine_distances, CAR_ID_INDEX, exp.target_car.car_id)
             first_ranks.append(first_rank)
             # reset
