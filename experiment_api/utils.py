@@ -35,6 +35,14 @@ class ImageType(object):
     TRAIN = 3
 
 
+def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
+    for index_of_list, tupl in enumerate(list_of_tuple):
+        if tupl[index_of_tuple] == value:
+            return index_of_list + 1
+    # could not find value in list_of_tuple
+    return len(list_of_tuple)
+
+
 def get_numeric(string):
     """ Extract the numeric value in a string.
     Args:

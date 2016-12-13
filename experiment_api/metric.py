@@ -134,6 +134,8 @@ class MetricRunner(object):
         return
 
     def __get_first_ranks(self, exp, feature_vectors):
+        CAR_ID_INDEX = 0
+        COSINE_DISTANCE_INDEX = 1
         self.logger.info("Generate set of images")
         camsets = exp.generate()
         self.logger.info("Match the target car to its respective vector")
@@ -146,7 +148,7 @@ class MetricRunner(object):
             for image in camset:
                 image_vector = feature_vectors[image.name]
                 cosine_distance = scipy.spatial.distance.cosine(target_car_vector, image_vector)
-                cosine_distances.append((index, cosine_distance))
+                cosine_distances.append((image.car_id, cosine_distance))
                 self.logger.info("Index: {}".format(index)) 
                 self.logger.info("Name: Target = {}, Image = {}".format(exp.target_car.name, image.name))
                 self.logger.info("Cosine distance: {}".format(cosine_distance))          
@@ -154,10 +156,10 @@ class MetricRunner(object):
             self.logger.info("Calculate the cosine distance of the image's vector against the target car's vector")
             self.logger.info("Rank the cosine distance with the shortest distance being #1")
             self.logger.debug("Before cosine distance is sorted [(index, cosine_distance)]: {}".format(cosine_distances))
-            cosine_distances = sorted(cosine_distances, key=lambda tupl: tupl[1])
+            cosine_distances = sorted(cosine_distances, key=lambda tupl: tupl[COSINE_DISTANCE_INDEX])
             self.logger.debug("After cosine distance is sorted [(index, cosine distance)]: {}".format(cosine_distances))
             self.logger.info("The index of the image with the shortest cosine distance is: {}".format(cosine_distances[0][0]))
-            first_rank = cosine_distances[0][0] 
+            first_rank = get_index_of_tuple(cosine_distances, CAR_ID_INDEX, exp.target_car.car_id)
             first_ranks.append(first_rank)
             # reset
             cosine_distances = list()
@@ -192,6 +194,7 @@ class MetricRunner(object):
         plt.axis([1, max(x), 0, max(y)])
         for i, y_val in enumerate(y):
             plt.annotate(y_val, xy=(x[i], y[i]))
+        plt.savefig("cmc_metric.pdf")
         return
 
 

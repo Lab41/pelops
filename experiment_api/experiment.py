@@ -151,7 +151,7 @@ class ExperimentGenerator(object):
         car_id = random.choice(list_valid_target_cars)
         self.target_car = random.choice(self.list_of_cars[car_id])
 
-
+    # TODO: make sure that each car has the same camera
     def __get_camset(self):
         num_imgs_per_camset = self.num_cars_per_cam
         camset = set()
