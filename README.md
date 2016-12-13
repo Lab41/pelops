@@ -2,7 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/Lab41/pelops.svg?style=svg)](https://circleci.com/gh/Lab41/pelops)[![codecov](https://codecov.io/gh/Lab41/pelops/branch/master/graph/badge.svg)](https://codecov.io/gh/Lab41/pelops)
 
-![Pelops Logo](/misc/pelops.png)
+<!-- Need to set width, which can't be done with MarkDown on Github -->
+<img src="/misc/pelops.png" alt="Pelops Logo" width="200"/>
 
 Pelops is a project by [Lab41](http://www.lab41.org/) that uses deep learning
 based methods to automatically identify cars by using their large scale
