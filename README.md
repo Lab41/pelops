@@ -1,10 +1,12 @@
 # Pelops
-TOOD: logo
 
 [![CircleCI](https://circleci.com/gh/Lab41/pelops.svg?style=svg)](https://circleci.com/gh/Lab41/pelops)[![codecov](https://codecov.io/gh/Lab41/pelops/branch/master/graph/badge.svg)](https://codecov.io/gh/Lab41/pelops)
 
+![Pelops Logo](/misc/pelops.png)
 
-TODO: paragraph about project
+Pelops is a project by [Lab41](http://www.lab41.org/) that uses deep learning
+based methods to automatically identify cars by using their large scale
+features—color, shape, light configuration, etc.
 
 # Install Instructions
 TODO
@@ -19,7 +21,7 @@ TODO
 TODO
 
 # Tests
-Tests are currently written in py.test for Python.  The tests are automatically run when building the containers.
+Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
 
 They can also be tested using:
 TODO
@@ -28,7 +30,7 @@ TODO
 
 Want to contribute?  Awesome!
 
-Please makesure you have [`pre-commit`](http://pre-commit.com/) installed so
+Please make sure you have [`pre-commit`](http://pre-commit.com/) installed so
 that your code is checked for various issues.
 
 After that, send us a pull request! We're happy to review them!
