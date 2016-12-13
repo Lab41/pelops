@@ -59,8 +59,10 @@ def extractColumn(colName, jsonList, t):
         if t == int:
             retval.append(int(line[colName]))
         if t == float:
+            vector = list()
             for element in line[colName]:
-                retval.append(float(element))
+                vector.append(float(element))
+            retval.append(vector)
     return retval
 
 
