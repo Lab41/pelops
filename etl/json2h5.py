@@ -28,10 +28,10 @@ Arguments:
     OUTFILE - h5py outfile name
 
 Options:
-    -h, --help      :show this message
-    -v, --version   :Version of the program
-    -i, --input     :input file for the program
-    -o, --output    :output file for the program
+    -h, --help               :show this message
+    -v, --version            :Version of the program
+    -i, --input=<INFILE>     :input file for the program
+    -o, --output=<OUTFILE>   :output file for the program
 
 '''
 import docopt
@@ -67,8 +67,12 @@ def extractColumn(colName, jsonList, t):
 def make5file(file5Name, names, jsonList):
     with h5py.File(file5Name, 'w') as f:
         for o, i, t, t2 in names:
+            sys.stdout.write('converting column {0}'.format(o))
             temp = extractColumn(o, jsonList, t)
+            sys.stdout.write('...Done\n')
+            sys.stdout.write('making dataset {0}'.format(i))
             f.create_dataset(i, data=temp, dtype=t2)
+            sys.stdout.write('...Done\n')
 
 
 def main(args):
@@ -78,7 +82,6 @@ def main(args):
     except docopt.DocoptExit as e:
         sys.exit('error: input invalid options: {0}'.format(e))
 
-    jsonList = makeJsonList(inFileName)
     f = np.dtype('float')
     c = h5py.special_dtype(vlen=bytes)
     names = [('colorID', 'colorID', int, int),
@@ -87,9 +90,13 @@ def main(args):
              ('imageName', 'ids', str, c),
              ('typeID', 'typeID', int, int),
              ('cameraID', 'cameraID', str, c)]
+
+    sys.stdout.write('Reading {0}'.format(inFileName))
+    jsonList = makeJsonList(inFileName)
+    sys.stdout.write('...Done\n')
+
     make5file(outFileName, names, jsonList)
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__, version='json2h5.py 1.0')
     main(args)
-    main(sys.argv[1], sys.argv[2])
