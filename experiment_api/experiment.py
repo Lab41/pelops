@@ -165,6 +165,7 @@ class ExperimentGenerator(object):
                 # make sure the car is taken by a different camera
                 if self.target_car.camera_id != similar_target_car.camera_id:
                     break
+                print("first")
             which_camera_id = similar_target_car.camera_id
             camset.add(similar_target_car)
         # grab images
@@ -179,6 +180,7 @@ class ExperimentGenerator(object):
                 if(random_car_img.car_id not in exist_car):
                     # different car
                     break
+                print("second")
                 """
                 else:
                     # same car already exists, make sure the timestamp is greater than 5 minutes

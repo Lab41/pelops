@@ -1,15 +1,32 @@
 """ Run metrics to determine how well the ResNet model identify the same car
 
-This script will create a plot that will show 
+This script will create a plot that will have
+ * x-axis: the index of the image in the set that has the shortest cosine distance  
+ * y-axis: cummulative sum of  
+       (the number of times the index appears as the shortest cosine distance in the set of images)
+       divided by 
+       (the number of run)
 
 Reliance: 
     The script will rely on ExperimentGenerator to build a list of sets (of images) for the experiment.
 
 Metric: 
-    1. CMC
-    
-    2. STR
-    
+    1. CMC: compare the target car with a set of 10 car images
+       Step #1: Using the ExperimentGenerator, create a set of 10 car images with zero drop rate,
+                meaning the target car will exist in the set. Note that the target car in the set
+                has to be at least 5 minutes before or after the target car in comparison.
+       Step #2: Match each feature vector to the images in the set.
+       Step #3: Calculate the cosine distance of the target car's feature vector and the feature vector 
+                of each image in the set.
+       Step #4: Figure out which image has the shortest cosine distance to the target car and add its
+                index in the set to the first_ranks list.
+       Step #5: Calculate the number of times index appears.
+       Step #6: Plot out the index number to the x-axis.
+       Step #7: Plot out the sum to the y-axis.
+
+    2. STR: compare a set of 10 car images with another set of 10 car images
+       Similar to CMC, except that 10 car images are compared to another 10 car images instead of
+       the target car image compared to 10 car images.
 
 Usage:
     metric.py [-hv]
@@ -18,15 +35,16 @@ Usage:
 Arguments:
     VERI                            : Path to the VeRi dataset unzipped
     FEATURE                         : Path to the feature json file
+                                      Make sure that feature is the same type as TYPE
 
 Options:
     -h, --help                      : Show this help message.
     -v, --version                   : Show the version number.
-    -e, --seed=<SEED>               : Seed to be used for random number generator.
+    -e, --seed=<SEED>               : Seed to be used for random number generator (default: random [1-100])
     -y, --type=<TYPE>               : Determine which type of images and features to use.
                                       0: all, 1: query, 2: test, 3: train (default: test)
     -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
-    -l, --log                       : Flag to output debug messages.
+    -l, --log                       : Flag to output debug messages (default: info messages)
     -c, --cmc                       : Run CMC metric
     -s, --str                       : Run STR metric
 
@@ -46,14 +64,14 @@ from experiment import ExperimentGenerator
 from utils import * 
 
 class MetricRunner(object):
-    def __init__(self, veri_unzipped_path, feature_path, seed, typ, num_run, is_log):
+    def __init__(self, veri_unzipped_path, feature_path, seed, typ, num_run, is_debug):
         self.veri_unzipped_path = veri_unzipped_path
         self.feature_path = feature_path
         self.seed = seed
         self.typ = typ
         self.num_run = num_run
         self.logger = logging.getLogger("Metric Runner")
-        if is_log:
+        if is_debug:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
@@ -80,7 +98,7 @@ class MetricRunner(object):
         return
 
     def run_cmc(self):
-        """ CMC will compare target car image with a set of 10 car images including the car
+        """ CMC will compare target car image with a set of 10 car images 
         """
         self.logger.info("=" * 80)
         self.logger.info("Running CMC metric")
@@ -100,29 +118,33 @@ class MetricRunner(object):
         return
 
     def __run_ranker(self, exp):
+        # get feature vectors
+        feature_vectors = self.__get_feature_vectors()
+        # calculate which image in the set has the shortest cosine distance 
+        # and add its index to the first_ranks list
         first_ranks = list()
         for i in range(0, self.num_run): 
             self.logger.info("Run #{}".format(i + 1))
-            first_ranks = first_ranks + self.__get_first_ranks(exp)
+            first_ranks = first_ranks + self.__get_first_ranks(exp, feature_vectors)
             self.logger.info("Adding the first rank(s) into the list:")
             self.logger.info(first_ranks)
             self.logger.info("-" * 80)
-        
-        self.__plot(collections.Counter(first_ranks), len(first_ranks))
+        # plot the output
+        self.__plot(collections.Counter(first_ranks))
         return
 
-    def __get_first_ranks(self, exp):
+    def __get_first_ranks(self, exp, feature_vectors):
         self.logger.info("Generate set of images")
         camsets = exp.generate()
         self.logger.info("Match the target car to its respective vector")
-        target_car_vector = self.__match_vector(exp.target_car)
+        target_car_vector = feature_vectors[exp.target_car.name]
         self.logger.info("Match each car image to its respective vector")
         first_ranks = list()
         cosine_distances = list()
         index = 1
         for camset in camsets:
             for image in camset:
-                image_vector = self.__match_vector(image)
+                image_vector = feature_vectors[image.name]
                 cosine_distance = scipy.spatial.distance.cosine(target_car_vector, image_vector)
                 cosine_distances.append((index, cosine_distance))
                 self.logger.info("Index: {}".format(index)) 
@@ -142,34 +164,34 @@ class MetricRunner(object):
             index = 1
         return first_ranks
 
-    def __match_vector(self, image):
+    def __get_feature_vectors(self):
+        feature_vectors = dict()
         objs = read_json(self.feature_path)
         for obj in objs:
-            # find the first image that has the same vehicle id and camera id
-            if obj["imageName"] == image.name:
-                return obj["resnet50"]
-            self.logger.debug(">> matching image car: {} vs {}".format(image.car_id, obj["imageName"]))
+            feature_vectors[obj["imageName"]] = obj["resnet50"]
+        return feature_vectors
 
-    def __plot(self, num_each_rank, len_first_ranks):
+    def __plot(self, num_per_index):
         def get_y(x):
             y = list()
             total = 0.
             for key in x:
-                total = total + (float(num_each_rank[key]) / float(len_first_ranks))
+                total = total + (float(num_per_index[key]) / float(self.num_run))
                 y.append(total)
             return y
 
-        x = sorted(num_each_rank.keys())
+        x = sorted(num_per_index.keys())
         y = get_y(x)
 
         self.logger.info("x value: {}".format(x))
         self.logger.info("y value: {}".format(y))
 
-        plt.plot(x, y, 'ro')
+        plt.plot(x, y, '-o')
         plt.xlabel("rank")
         plt.ylabel("cummulative")
-        plt.axis([1, max(x), 1, max(y)])
-        plt.savefig("cmc_metric.pdf") # TODO: save it in a better manner
+        plt.axis([1, max(x), 0, max(y)])
+        for i, y_val in enumerate(y):
+            plt.annotate(y_val, xy=(x[i], y[i]))
         return
 
 
@@ -180,8 +202,7 @@ class MetricRunner(object):
 def main(args):
     # extract arguments from command line
     try:
-        veri_unzipped_path = args["<VERI>"]
-        feature_path = args["<FEATURE>"]
+        # which metrics
         if args["--cmc"]:
             is_cmc = True
         else:
@@ -190,10 +211,15 @@ def main(args):
             is_str = True
         else:
             is_str = False
+        # mandatory
+        veri_unzipped_path = args["<VERI>"]
+        feature_path = args["<FEATURE>"]
+        num_run = int(args["--num_run"])
+        # optionals
         if args["--log"]:
-            is_log = True
+            is_debug = True
         else:
-            is_log = False
+            is_debug = False
         if args["--seed"]:
             seed = int(args["--seed"])
         else: # set default
@@ -202,7 +228,6 @@ def main(args):
             typ = int(args["--type"])
         else: # set default
             typ = ImageType.TEST
-        num_run = int(args["--num_run"])
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 
@@ -215,7 +240,7 @@ def main(args):
         sys.exit("ERROR: you need to specify which metric to run")
 
     # create the metric runner
-    runner = MetricRunner(veri_unzipped_path, feature_path, seed, typ, num_run, is_log)
+    runner = MetricRunner(veri_unzipped_path, feature_path, seed, typ, num_run, is_debug)
 
     # run the experiment
     if is_cmc: 

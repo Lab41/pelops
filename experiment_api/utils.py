@@ -1,3 +1,4 @@
+import cProfile
 import datetime
 import json
 import logging
@@ -97,17 +98,36 @@ def read_json(filepath):
         for line in file:
             yield json.loads(line)
 
-
-def timeit(func, *args, **kwargs):
-    """ This is a wrapper function to calculate how fast each operation takes.
-    Note that we are assuming that we do not need to do anything with the return
-    value of the function.
+def timewrapper(func):
+    """ This is a decorator function to calculate how fast each operation takes.
     Args: 
         func: function pointer
         args: arguments to the function
         kwargs: named arguments not defined in advance to be passed in to the function
     """
-    start = time.time()
-    func(*args, **kwargs)
-    elapsed = time.time() - start
-    return elapsed
+    def timer(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+        print("{} took {} seconds".format(func.__name__, elapsed))
+        return result
+    return timer
+
+
+def profilewrapper(func):    
+    """ This is a decorator to profile a function.
+    Args: 
+        func: function pointer
+        args: arguments to the function
+        kwargs: named arguments not defined in advance to be passed in to the function
+    """
+    def profiler(*args, **kwargs):
+        profile = cProfile.Profile()
+        try:
+            profile.enable()
+            result = func(*args, **kwargs)
+            profile.disable()
+            return result
+        finally:
+            profile.print_stats()
+    return profiler 
