@@ -84,7 +84,8 @@ class ExperimentGenerator(object):
         random.seed(self.seed)
         self.list_of_cameras_per_car = collections.defaultdict(set)
         self.list_of_cameras = list()
-        self.list_of_images = collections.defaultdict(list)
+        self.list_of_images_by_car_id = collections.defaultdict(set)
+        self.list_of_images_by_camera_id = collections.defaultdict(set)
 
     def set_filepaths(self, veri_unzipped_path):
         self.name_query_filepath = veri_unzipped_path + "/" +  Veri.name_query_filepath
@@ -125,36 +126,24 @@ class ExperimentGenerator(object):
     def __unset_lists(self):
         self.list_of_cameras_per_car = collections.defaultdict(set)
         self.list_of_cameras = list()
-        self.images = collections.defaultdict(list)
+        self.list_of_images_by_car_id = collections.defaultdict(set)
+        self.list_of_images_by_camera_id = collections.defaultdict(set)
 
     def __set_lists(self):
         # TODO: figure out a better way to go about doing this
         # list_of_cameras_per_car: map each car with a list of distinct cameras that spot the car
         # list_of_car_names_per_camera: map each camera with a list of cars it spots
-        # list_of_images: map car and camera to each image
+        # list_of_images_by_car_id: 
+        # list_of_images_by_camera_id: 
         for image in self.__get_images():
             car_id = image.car_id
             camera_id = image.camera_id
             # list needed for finding target cars
             self.list_of_cameras_per_car[car_id].add(camera_id)
+            self.list_of_images_by_car_id[car_id].add(image)
             # list needed for finding random cars
             self.list_of_cameras.append(camera_id)
-            # list needed for both
-            self.list_of_images[(car_id, camera_id)].append(image)
-
-    def __get_list_of_cars(self, comp_car_id):
-        return list(image for((car_id, camera_id), image) in self.list_of_images.items() if car_id == comp_car_id)
-
-    def __get_random_car_image_by_car_id(self, comp_car_id):
-        list_of_cars = self.__get_list_of_cars(comp_car_id)
-        return random.choice(list_of_cars[random.randrange(0, len(list_of_cars))])
-
-    def __get_list_of_cameras(self, comp_camera_id):
-        return list(image for((car_id, camera_id), image) in self.list_of_images.items() if camera_id == comp_camera_id)
-
-    def __get_random_car_image_by_camera_id(self, comp_car_id):
-        list_of_cameras = self.__get_list_of_cameras(comp_car_id)
-        return random.choice(list_of_cameras[random.randrange(0, len(list_of_cameras))])
+            self.list_of_images_by_camera_id[camera_id].add(image)
 
     def __set_target_car(self):
         # count the number of times distinct cameras spot the car
@@ -165,7 +154,7 @@ class ExperimentGenerator(object):
                 list_valid_target_cars.append(car_id)
         # get the target car
         car_id = random.choice(list_valid_target_cars)
-        self.target_car = self.__get_random_car_image_by_car_id(car_id)
+        self.target_car = random.choice(list(self.list_of_images_by_car_id[car_id]))
 
     def __get_camset(self):
         num_imgs_per_camset = self.num_cars_per_cam
@@ -176,7 +165,7 @@ class ExperimentGenerator(object):
             num_imgs_per_camset = num_imgs_per_camset - 1
             while True:
                 # WARNING: If the car is only taken by one camera, this will go into an infinite loop
-                similar_target_car = self.__get_random_car_image_by_car_id(self.target_car.car_id)
+                similar_target_car = random.choice(list(self.list_of_images_by_car_id[self.target_car.car_id]))
                 # make sure the car is taken by a different camera
                 if self.target_car.camera_id != similar_target_car.camera_id:
                     break
@@ -188,7 +177,7 @@ class ExperimentGenerator(object):
         for i in range(0, num_imgs_per_camset):
             while True:
                 # WARNING: If the dataset only contains one car, this will go into an infinite loop            
-                random_car =self.__get_random_car_image_by_camera_id(which_camera_id)
+                random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
                 # check if same car already existed
                 if(random_car.car_id not in exist_car):
                     # different car
