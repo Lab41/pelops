@@ -1,8 +1,7 @@
 -   repo: https://github.com/pre-commit/pre-commit
-    sha: 8837cfa7ffcc419216d4e01392cee0f1ceee9c88
+    sha: v0.9.4
     hooks:
     -   id: validate_config
-
 -   repo: git@github.com:pre-commit/pre-commit-hooks
     sha: 96fb7fa10f2f4c11ed33482a9ad7474251e5e97f
     hooks:
@@ -15,13 +14,14 @@
     -   id: double-quote-string-fixer
     -   id: end-of-file-fixer
     -   id: pretty-format-json
-        args: ['--autofix']
+        args:
+        - --autofix
     -   id: trailing-whitespace
 -   repo: git@github.com:asottile/reorder_python_imports
     sha: v0.3.0
     hooks:
     -   id: reorder-python-imports
 -   repo: git@github.com:Lab41/verboten_words.git
-    sha: f07c2c0116d0bd6466dde6af4ef9bca5531d6cc7
+    sha: v1.0.0
     hooks:
     -   id: verboten-words
