@@ -52,7 +52,6 @@ def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
     # could not find value in list_of_tuple, so return length of tuple
     return len(list_of_tuple)
 
-
 def get_numeric(string):
     """ Extract the numeric value in a string.
     Args:
