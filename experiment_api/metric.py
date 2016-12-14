@@ -59,9 +59,9 @@ import random
 import scipy
 import scipy.spatial
 import sys
+import utils
 
 from experiment import ExperimentGenerator
-from utils import *
 
 
 class MetricRunner(object):
@@ -81,7 +81,7 @@ class MetricRunner(object):
             self.logger.setLevel(logging.INFO)
         # initalizing
 
-    @timewrapper
+    # @timewrapper
     def run_str(self):
         """ STR will compare a set of 10 car images with another set of 10 car images
         """
@@ -102,7 +102,7 @@ class MetricRunner(object):
         self.logger.info("=" * 80)
         return
 
-    @timewrapper
+    # @timewrapper
     def run_cmc(self):
         """ CMC will compare target car image with a set of 10 car images
         """
@@ -112,7 +112,7 @@ class MetricRunner(object):
         num_cams = 1
         num_cars_per_cam = 10
         drop_percentage = 0
-        time = 5 # TODO: currently this value does not matter
+        time = 5  # TODO: currently this value does not matter
         self.logger.info("-" * 80)
         self.logger.info("Instantiate ExperimentGenerator")
         self.logger.info("num_cams = {}, num_cars_per_cam = {}, drop_percentage = {}".format(num_cams, num_cars_per_cam, drop_percentage))
@@ -160,7 +160,7 @@ class MetricRunner(object):
                 self.logger.info("Sort the cosine distances")
             cosine_distances = sorted(cosine_distances, key=lambda tupl: tupl[COSINE_DISTANCE_INDEX])
             self.logger.info("Determine how many times we have to go through the sorted list to find the matching target car")
-            attempt = get_index_of_tuple(cosine_distances, CAR_ID_INDEX, exp.target_car.car_id)
+            attempt = utils.get_index_of_tuple(cosine_distances, CAR_ID_INDEX, exp.target_car.car_id)
             attempts.append(attempt)
             # reset
             cosine_distances = list()
@@ -171,7 +171,7 @@ class MetricRunner(object):
         # imageName that references the image's name
         # resnet50 that references the image's feature vector
         feature_vectors = dict()
-        objs = read_json(self.feature_path)
+        objs = utils.read_json(self.feature_path)
         for obj in objs:
             feature_vectors[obj["imageName"]] = obj["resnet50"]
         return feature_vectors
@@ -233,7 +233,7 @@ def main(args):
         if args["--type"]:
             typ = int(args["--type"])
         else:  # set default
-            typ = ImageType.TEST
+            typ = utils.ImageType.TEST
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 

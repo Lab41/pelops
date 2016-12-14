@@ -5,6 +5,7 @@ import random
 import re
 import time
 
+
 class Veri(object):
     """ Structure of the Veri dataset unzipped and miscellaneous information
     """
@@ -35,7 +36,7 @@ class ImageType(object):
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
-    """ Determine how far through the list to find the value. 
+    """ Determine how far through the list to find the value.
     If the value does not exist in the list, then return the
     length of the list.
     Args:
@@ -50,6 +51,7 @@ def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
             return index_of_list + 1
     # could not find value in list_of_tuple, so return length of tuple
     return len(list_of_tuple)
+
 
 def get_numeric(string):
     """ Extract the numeric value in a string.
@@ -103,7 +105,7 @@ def read_timestamp(name):
         name: string in the format of 0002_c002_00030670_0.jpg
     Returns:
         a datetime object of timestamp
-    """    
+    """
     splitter = name.split("_")
     return datetime.datetime.fromtimestamp(int(splitter[2]))
 
@@ -124,7 +126,7 @@ def read_json(filepath):
 
 def timewrapper(func):
     """ This is a decorator to calculate how fast each operation takes.
-    Args: 
+    Args:
         func: function pointer
         args: arguments to the function
         kwargs: named arguments not defined in advance to be passed in to the function
@@ -138,9 +140,9 @@ def timewrapper(func):
     return timer
 
 
-def profilewrapper(func):    
+def profilewrapper(func):
     """ This is a decorator to profile a function.
-    Args: 
+    Args:
         func: function pointer
         args: arguments to the function
         kwargs: named arguments not defined in advance to be passed in to the function
@@ -154,4 +156,4 @@ def profilewrapper(func):
             return result
         finally:
             profile.print_stats()
-    return profiler 
+    return profiler
