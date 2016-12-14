@@ -246,6 +246,7 @@ class Image(object):
 # -----------------------------------------------------------------------------
 
 
+@timewrapper
 def main(args):
     # extract arguments from command line
     try:
