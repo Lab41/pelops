@@ -84,7 +84,7 @@ def read_camera_id(name):
         an int value of camera_id
     """
     splitter = name.split("_")
-    return int(get_numeric(splitter[3]))
+    return int(get_numeric(splitter[1]))
 
 
 def read_car_id(name):
