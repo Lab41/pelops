@@ -15,10 +15,10 @@ Input:
 Output:
     This script will output a list of sets based on the number of cameras specified.
     Within each set, it will contain a list of images based on the number of cars per camera specified.
+    Each set contains car images taken by the same camera.
     These images are stored inside an Image object.
     The target car, which will be randomly selected, will exist in each set depending on the drop rate.
-    If it's not dropped, it will exist as the first index in the set.
-    Currently, each set contains distinct car ids. If you uncommented the code section in 
+    Currently, each set contains distinct car ids. If you uncommented the code section in
     ExperimentGenerator's __get_camset(), it will generate a set with repeated car ids that are at least
     MINUTES apart specified by the user.
     For example:
@@ -54,8 +54,8 @@ Options:
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
     -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
-    -y, --type=<TYPE>               : Determine which type of images to use. 
-                                      0: all, 1: query, 2: test, 3: train 
+    -y, --type=<TYPE>               : Determine which type of images to use.
+                                      0: all, 1: query, 2: test, 3: train
 
 """
 
@@ -64,15 +64,13 @@ import datetime
 import docopt
 import os
 import random
-import re
 import sys
-
-from utils import *
+import utils
 
 
 class ExperimentGenerator(object):
     def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ):
-        # set inputs         
+        # set inputs
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
@@ -88,21 +86,21 @@ class ExperimentGenerator(object):
         self.list_of_images_by_camera_id = collections.defaultdict(set)
 
     def set_filepaths(self, veri_unzipped_path):
-        self.name_query_filepath = veri_unzipped_path + "/" +  Veri.name_query_filepath
-        self.name_test_filepath = veri_unzipped_path + "/" + Veri.name_test_filepath
-        self.name_train_filepath = veri_unzipped_path + "/" + Veri.name_train_filepath
-        self.image_query_filepath = veri_unzipped_path + "/" + Veri.image_query_filepath
-        self.image_test_filepath = veri_unzipped_path + "/" + Veri.image_test_filepath
-        self.image_train_filepath = veri_unzipped_path + "/" + Veri.image_train_filepath
+        self.name_query_filepath = veri_unzipped_path + "/" + utils.Veri.name_query_filepath
+        self.name_test_filepath = veri_unzipped_path + "/" + utils.Veri.name_test_filepath
+        self.name_train_filepath = veri_unzipped_path + "/" + utils.Veri.name_train_filepath
+        self.image_query_filepath = veri_unzipped_path + "/" + utils.Veri.image_query_filepath
+        self.image_test_filepath = veri_unzipped_path + "/" + utils.Veri.image_test_filepath
+        self.image_train_filepath = veri_unzipped_path + "/" + utils.Veri.image_train_filepath
 
     def __merge_names(self, *filepaths):
         names = set()
         for filepath in filepaths:
             # determine image's type and directory
-            if Veri.name_query_filepath in filepath:
+            if utils.Veri.name_query_filepath in filepath:
                 img_type = "query"
                 img_dir = self.image_query_filepath
-            elif Veri.name_test_filepath in filepath:
+            elif utils.Veri.name_test_filepath in filepath:
                 img_type = "test"
                 img_dir = self.image_test_filepath
             else:
@@ -120,8 +118,8 @@ class ExperimentGenerator(object):
             1: self.__merge_names(self.name_query_filepath),
             2: self.__merge_names(self.name_test_filepath),
             3: self.__merge_names(self.name_train_filepath),
-        }.get(self.typ) 
-        #}.get(self.typ, 0) # default to all 
+        }.get(self.typ)
+        # }.get(self.typ, 0) # default to all
 
     def __unset_lists(self):
         self.list_of_cameras_per_car = collections.defaultdict(set)
@@ -133,8 +131,8 @@ class ExperimentGenerator(object):
         # TODO: figure out a better way to go about doing this
         # list_of_cameras_per_car: map each car with a list of distinct cameras that spot the car
         # list_of_car_names_per_camera: map each camera with a list of cars it spots
-        # list_of_images_by_car_id: 
-        # list_of_images_by_camera_id: 
+        # list_of_images_by_car_id: map each car image to its respective car id
+        # list_of_images_by_camera_id: map each car image to its respective camera id
         for image in self.__get_images():
             car_id = image.car_id
             camera_id = image.camera_id
@@ -161,7 +159,7 @@ class ExperimentGenerator(object):
         camset = set()
         which_camera_id = random.choice(self.list_of_cameras)
         # determine whether or not to add a different target car image
-        if not should_drop(self.drop_percentage):
+        if not utils.should_drop(self.drop_percentage):
             num_imgs_per_camset = num_imgs_per_camset - 1
             while True:
                 # WARNING: If the car is only taken by one camera, this will go into an infinite loop
@@ -173,10 +171,10 @@ class ExperimentGenerator(object):
             camset.add(similar_target_car)
         # grab images
         exist_car = list()
-        #exist_timestamp = list()
+        # exist_timestamp = list()
         for i in range(0, num_imgs_per_camset):
             while True:
-                # WARNING: If the dataset only contains one car, this will go into an infinite loop            
+                # WARNING: If the dataset only contains one car, this will go into an infinite loop
                 random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
                 # check if same car already existed
                 if(random_car.car_id not in exist_car):
@@ -192,7 +190,7 @@ class ExperimentGenerator(object):
                         break
                 """
             exist_car.append(random_car.car_id)
-            #exist_timestamp.append(random_car.timestamp)
+            # exist_timestamp.append(random_car.timestamp)
             camset.add(random_car)
             # see if the image added is the same and if it is check the timestamp
         # return camset
@@ -216,7 +214,7 @@ class Image(object):
         self.type = img_type
         self.__splitter = self.name.split("_")
         self.car_id = int(self.__splitter[0])
-        self.camera_id = int(get_numeric(self.__splitter[1]))
+        self.camera_id = int(utils.get_numeric(self.__splitter[1]))
         self.timestamp = datetime.datetime.fromtimestamp(int(self.__splitter[2]))
         self.binary = int(os.path.splitext(self.__splitter[3])[0])
 
@@ -235,7 +233,7 @@ class Image(object):
 # -----------------------------------------------------------------------------
 
 
-@timewrapper
+# @timewrapper
 def main(args):
     # extract arguments from command line
     try:
