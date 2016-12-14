@@ -1,5 +1,6 @@
 import cProfile
 import datetime
+import enum
 import json
 import random
 import re
@@ -26,7 +27,7 @@ class Veri(object):
     total_images = 49358
 
 
-class ImageType(object):
+class ImageType(enum.Enum):
     """ Types of images
     """
     ALL = 0

@@ -114,10 +114,10 @@ class ExperimentGenerator(object):
 
     def __get_images(self):
         return {
-            0: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
-            1: self.__merge_names(self.name_query_filepath),
-            2: self.__merge_names(self.name_test_filepath),
-            3: self.__merge_names(self.name_train_filepath),
+            utils.ImageType.ALL: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
+            utils.ImageType.QUERY: self.__merge_names(self.name_query_filepath),
+            utils.ImageType.TEST: self.__merge_names(self.name_test_filepath),
+            utils.ImageType.TRAIN: self.__merge_names(self.name_train_filepath),
         }.get(self.typ)
         # }.get(self.typ, 0) # default to all
 
