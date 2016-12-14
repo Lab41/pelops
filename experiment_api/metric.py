@@ -233,7 +233,7 @@ def main(args):
         if args["--type"]:
             typ = int(args["--type"])
         else:  # set default
-            typ = utils.ImageType.TEST
+            typ = utils.ImageType.TEST.value
     except docopt.DocoptExit as e:
         sys.exit("ERROR: input invalid options: %s" % e)
 

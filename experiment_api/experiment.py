@@ -114,10 +114,10 @@ class ExperimentGenerator(object):
 
     def __get_images(self):
         return {
-            utils.ImageType.ALL: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
-            utils.ImageType.QUERY: self.__merge_names(self.name_query_filepath),
-            utils.ImageType.TEST: self.__merge_names(self.name_test_filepath),
-            utils.ImageType.TRAIN: self.__merge_names(self.name_train_filepath),
+            utils.ImageType.ALL.value: self.__merge_names(self.name_query_filepath, self.name_test_filepath, self.name_train_filepath),
+            utils.ImageType.QUERY.value: self.__merge_names(self.name_query_filepath),
+            utils.ImageType.TEST.value: self.__merge_names(self.name_test_filepath),
+            utils.ImageType.TRAIN.value: self.__merge_names(self.name_train_filepath),
         }.get(self.typ)
         # }.get(self.typ, 0) # default to all
 
@@ -142,7 +142,6 @@ class ExperimentGenerator(object):
             # list needed for finding random cars
             self.list_of_cameras.append(camera_id)
             self.list_of_images_by_camera_id[camera_id].add(image)
-            cars.add(car_id)
 
     def __is_only_one_car(self):
         return len(self.list_of_images_by_car_id.keys()) == 1
