@@ -3,7 +3,7 @@
     hooks:
     -   id: validate_config
 -   repo: git@github.com:pre-commit/pre-commit-hooks
-    sha: 96fb7fa10f2f4c11ed33482a9ad7474251e5e97f
+    sha: v0.6.1
     hooks:
     -   id: autopep8-wrapper
     -   id: check-case-conflict
@@ -11,7 +11,6 @@
     -   id: check-merge-conflict
     -   id: check-symlinks
     -   id: check-yaml
-    -   id: double-quote-string-fixer
     -   id: end-of-file-fixer
     -   id: pretty-format-json
         args:
