@@ -84,6 +84,7 @@ class ExperimentGenerator(object):
         self.list_of_cameras = list()
         self.list_of_images_by_car_id = collections.defaultdict(set)
         self.list_of_images_by_camera_id = collections.defaultdict(set)
+        self.is_only_one_car = False
 
     def set_filepaths(self, veri_unzipped_path):
         self.name_query_filepath = veri_unzipped_path + "/" + utils.Veri.name_query_filepath
@@ -133,6 +134,7 @@ class ExperimentGenerator(object):
         # list_of_car_names_per_camera: map each camera with a list of cars it spots
         # list_of_images_by_car_id: map each car image to its respective car id
         # list_of_images_by_camera_id: map each car image to its respective camera id
+        cars = set()
         for image in self.__get_images():
             car_id = image.car_id
             camera_id = image.camera_id
@@ -142,6 +144,10 @@ class ExperimentGenerator(object):
             # list needed for finding random cars
             self.list_of_cameras.append(camera_id)
             self.list_of_images_by_camera_id[camera_id].add(image)
+            cars.add(car_id)
+        # check if the dataset only contains one car
+        if len(cars) == 1:
+            self.is_only_one_car = True
 
     def __set_target_car(self):
         # count the number of times distinct cameras spot the car
@@ -174,8 +180,11 @@ class ExperimentGenerator(object):
         # exist_timestamp = list()
         for i in range(0, num_imgs_per_camset):
             while True:
-                # WARNING: If the dataset only contains one car, this will go into an infinite loop
                 random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
+                # WARNING: If the dataset only contains one car, this will go into an infinite loop
+                # prevent that from happening with this check
+                if self.is_only_one_car:
+                    break
                 # check if same car already existed
                 if(random_car.car_id not in exist_car):
                     # different car
