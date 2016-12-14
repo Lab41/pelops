@@ -1,12 +1,5 @@
-Using:
-Anaconda3-4.2.0
-
-For experiment_api:
-* docopt 
-* scipy 
-* matplotlib
-* logger
-
-For transform_img:
-* docopt
-* python-resize-image 
+docopts
+scipy
+matplotlib
+logger
+python-resize-image
