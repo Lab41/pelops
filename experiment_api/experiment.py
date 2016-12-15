@@ -13,19 +13,18 @@ Input:
     In: IEEE International Conference on Multimedia and Expo. (2016) accepted.
 
 Output:
-    This script will output a list of sets based on the number of cameras specified.
-    Within each set, it will contain a list of images based on the number of cars per camera specified.
-    Each set contains car images taken by the same camera.
-    These images are stored inside an Image object.
-    The target car, which will be randomly selected, will exist in each set depending on the drop rate.
-    Currently, each set contains distinct car ids. If you uncommented the code section in
-    ExperimentGenerator's __get_camset(), it will generate a set with repeated car ids that are at least
-    MINUTES apart specified by the user.
-    For example:
+    * Define a target car image
+    * Outputs sets containing images
+        * The number of set is defined by NUM_CAMS. 
+        * Each set contains a number of car images defined by NUM_CARS_PER_CAM.
+        * All images in a set is taken by the same camera.
+        * The target car, which will be randomly selected, will exist in each set depending on DROP_PERCENTAGE.
+        * Each set contains distinct cars unless the dataset only contains one car.
+    
+Example:
     * num_cams = 10, which means we will create 10 camera sets
-    * num_cars_per_cam = 5, which means we will have 5 Image objects within the set
+    * num_cars_per_cam = 5, which means we will have 5 distinct cars within the set
     * drop = 0.3, which means the target car will be dropped 30% of the time
-
     [
      set(Image(target_car), Image(1), Image(2), Image(3), Image(4)), # set 1
      set(Image(target_car), Image(1), Image(2), Image(3), Image(4)), # set 2
@@ -41,7 +40,7 @@ Output:
 
 Usage:
     experiment.py [-hv]
-    experiment.py -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -t <MINUTES> -e <SEED> -y <TYPE> <INPUT_PATH>
+    experiment.py [-e <SEED>] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -y <TYPE> <INPUT_PATH>
 
 Arguments:
     INPUT_PATH                      : Path to the VeRi dataset unzipped
@@ -53,30 +52,29 @@ Options:
     -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
-    -t, --time=<MINUTES>            : If the same car image exists in a set, only allows it after a certain amount of time in minutes.
     -y, --type=<TYPE>               : Determine which type of images to use.
                                       0: all, 1: query, 2: test, 3: train
 
 """
 
 import collections
+import argparse
 import datetime
-import docopt
 import os
 import random
 import sys
+import textwrap
 import utils
 
 
 class ExperimentGenerator(object):
-    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ):
+    def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, typ):
         # set inputs
         self.set_filepaths(veri_unzipped_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
         self.seed = seed
-        self.time = time
         self.typ = typ
         # stuff that needs to be initialized
         random.seed(self.seed)
@@ -178,7 +176,6 @@ class ExperimentGenerator(object):
             camset.add(similar_target_car)
         # grab images
         exist_car = list()
-        # exist_timestamp = list()
         for i in range(0, num_imgs_per_camset):
             while True:
                 random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
@@ -190,17 +187,7 @@ class ExperimentGenerator(object):
                 if(random_car.car_id not in exist_car):
                     # different car
                     break
-                """
-                else:
-                    # same car already exists, make sure the timestamp is greater than 5 minutes
-                    old_timestamp = exist_timestamp[exist_car.index(random_car.car_id)]
-                    new_timestamp = random_car.timestamp
-                    valid_timestamp = abs(new_timestamp - old_timestamp) / datetime.timedelta(minutes=1)
-                    if valid_timestamp > self.time:
-                        break
-                """
             exist_car.append(random_car.car_id)
-            # exist_timestamp.append(random_car.timestamp)
             camset.add(random_car)
         return camset
 
@@ -243,23 +230,19 @@ class Image(object):
 # @timewrapper
 def main(args):
     # extract arguments from command line
-    try:
-        veri_unzipped_path = args["<INPUT_PATH>"]
-        num_cams = int(args["--cams"])
-        num_cars_per_cam = int(args["--cars"])
-        drop_percentage = float(args["--drop"])
-        seed = int(args["--seed"])
-        time = int(args["--time"])
-        typ = int(args["--type"])
-    except docopt.DocoptExit as e:
-        sys.exit("ERROR: input invalid options: %s" % e)
+    veri_unzipped_path = args.input
+    num_cams = args.num_cams
+    num_cars_per_cam = args.num_cars_per_cam
+    drop_percentage = args.drop_percentage
+    seed = args.seed
+    typ = args.type
 
     # check that input_path points to a directory
     if not os.path.exists(veri_unzipped_path) or not os.path.isdir(veri_unzipped_path):
         sys.exit("ERROR: filepath to VeRi directory (%s) is invalid" % veri_unzipped_path)
 
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, time, typ)
+    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, typ)
 
     # generate the experiment
     set_num = 1
@@ -289,5 +272,20 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = docopt.docopt(__doc__, version="Experiment Generator 1.0")
-    main(args)
+    parser = argparse.ArgumentParser(prog="experiment.py", description="Generate sets of images for metrics", formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-v", "--version", action="version", version="Experiment Generator 1.0")
+    parser.add_argument("-s", dest="num_cams", action="store", type=int,
+                        help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
+    parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
+                        help="Each set has a list of car images. The cars in a set are distinct.\nNUM_CARS_PER_CAM specifies the number of car images in each camera set.")
+    parser.add_argument("-d", dest="drop_percentage", action="store", type=float,
+                        help="DROP_PERCENTAGE specifies the likelihood that\nthe target car image is dropped (float from [0,1])")
+    parser.add_argument("-e", dest="seed", action="store", type=int,
+                        default=random.randint(1, 100),
+                        help="(OPTIONAL) SEED is used for random number generator.")
+    parser.add_argument("-y", dest="type", action="store", type=int, 
+                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
+    parser.add_argument("input", default="veri_unzipped_path", action="store", type=str, 
+                        help="Path to the VeRi dataset unzipped"
+                        )
+    main(parser.parse_args())
