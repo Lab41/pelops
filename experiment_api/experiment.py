@@ -160,6 +160,18 @@ class ExperimentGenerator(object):
         car_id = random.choice(list_valid_target_cars)
         self.target_car = random.choice(list(self.list_of_images_by_car_id[car_id]))
 
+    def __create_similar_target_car(self, target_car):
+        while True:
+            similar_target_car = random.choice(list(self.list_of_images_by_car_id[target_car.car_id]))
+            # WARNING: If the car is only taken by one camera, this will go into an infinite loop
+            # prevent that from happening with this check
+            if self.__is_taken_by_only_one_camera(target_car.car_id):
+                break
+            # make sure the car is taken by a different camera
+            if target_car.camera_id != similar_target_car.camera_id:
+                break
+        return similar_target_car
+
     def __get_camset(self):
         num_imgs_per_camset = self.num_cars_per_cam
         camset = set()
@@ -167,15 +179,7 @@ class ExperimentGenerator(object):
         # determine whether or not to add a different target car image
         if not utils.should_drop(self.drop_percentage):
             num_imgs_per_camset = num_imgs_per_camset - 1
-            while True:
-                similar_target_car = random.choice(list(self.list_of_images_by_car_id[self.target_car.car_id]))
-                # WARNING: If the car is only taken by one camera, this will go into an infinite loop
-                # prevent that from happening with this check
-                if self.__is_taken_by_only_one_camera(self.target_car.car_id):
-                    break
-                # make sure the car is taken by a different camera
-                if self.target_car.camera_id != similar_target_car.camera_id:
-                    break
+            similar_target_car = self.__create_similar_target_car(self.target_car)
             which_camera_id = similar_target_car.camera_id
             camset.add(similar_target_car)
         # grab images
@@ -186,7 +190,7 @@ class ExperimentGenerator(object):
                 random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
                 # WARNING: If the dataset only contains one car, this will go into an infinite loop
                 # prevent that from happening with this check
-                if self.__is_only_one_car:
+                if self.__is_only_one_car():
                     break
                 # check if same car already existed
                 if(random_car.car_id not in exist_car):
