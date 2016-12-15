@@ -220,8 +220,13 @@ class MetricRunner(object):
         plt.xlabel("number of attempts to find the matching target car")
         plt.ylabel("cummulative sum")
         plt.axis([1, max(x), 0, max(y)])
+        """
+        # annotate all value points
         for i, y_val in enumerate(y):
             plt.annotate(y_val, xy=(x[i], y[i]))
+        """
+        # annotate only the first point
+        plt.annotate(y[0], xy=(x[0], y[0]))
         plt.savefig("cmc_metric.pdf")
         return
 
