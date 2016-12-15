@@ -51,8 +51,8 @@ Arguments:
 Options:
     -h, --help                      : Show this help message.
     -v, --version                   : Show the version number.
-    -c, --cmc                       : Run CMC metric
-    -s, --str                       : Run STR metric
+    -c, --cmc                       : Run CMC (Cummulative Matching Curve) metric
+    -s, --str                       : Run STR (N^2) metric
     -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
     -y, --type=<TYPE>               : Determine which type of images and features to use.
                                       0: all, 1: query, 2: test, 3: train 
@@ -243,10 +243,10 @@ class MetricRunner(object):
         plt.savefig(output_name)
         return
 
-
 # -----------------------------------------------------------------------------
 #  Execution example
 # -----------------------------------------------------------------------------
+
 
 def main(args):
     # extract arguments from command line
