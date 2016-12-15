@@ -15,12 +15,12 @@ Input:
 Output:
     * Define a target car image
     * Outputs sets containing images
-        * The number of set is defined by NUM_CAMS. 
+        * The number of set is defined by NUM_CAMS.
         * Each set contains a number of car images defined by NUM_CARS_PER_CAM.
         * All images in a set is taken by the same camera.
         * The target car, which will be randomly selected, will exist in each set depending on DROP_PERCENTAGE.
         * Each set contains distinct cars unless the dataset only contains one car.
-    
+
 Example:
     * num_cams = 10, which means we will create 10 camera sets
     * num_cars_per_cam = 5, which means we will have 5 distinct cars within the set
@@ -56,18 +56,18 @@ Options:
     -e, --seed=<SEED>               : Seed to be used for random number generator.
 
 """
-
 import argparse
 import collections
 import datetime
 import os
 import random
 import sys
-import textwrap
+
 import utils
 
 
 class ExperimentGenerator(object):
+
     def __init__(self, veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, typ):
         # set inputs
         self.set_filepaths(veri_unzipped_path)
@@ -84,12 +84,18 @@ class ExperimentGenerator(object):
         self.list_of_images_by_camera_id = collections.defaultdict(set)
 
     def set_filepaths(self, veri_unzipped_path):
-        self.name_query_filepath = veri_unzipped_path + "/" + utils.Veri.name_query_filepath
-        self.name_test_filepath = veri_unzipped_path + "/" + utils.Veri.name_test_filepath
-        self.name_train_filepath = veri_unzipped_path + "/" + utils.Veri.name_train_filepath
-        self.image_query_filepath = veri_unzipped_path + "/" + utils.Veri.image_query_filepath
-        self.image_test_filepath = veri_unzipped_path + "/" + utils.Veri.image_test_filepath
-        self.image_train_filepath = veri_unzipped_path + "/" + utils.Veri.image_train_filepath
+        self.name_query_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.name_query_filepath
+        self.name_test_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.name_test_filepath
+        self.name_train_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.name_train_filepath
+        self.image_query_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.image_query_filepath
+        self.image_test_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.image_test_filepath
+        self.image_train_filepath = veri_unzipped_path + \
+            "/" + utils.Veri.image_train_filepath
 
     def __merge_names(self, *filepaths):
         names = set()
@@ -105,7 +111,8 @@ class ExperimentGenerator(object):
                 img_type = "train"
                 img_dir = self.image_train_filepath
             # put all the names in the file into a set
-            this_set = set(Image(name.strip(), img_dir, img_type) for name in open(filepath))
+            this_set = set(Image(name.strip(), img_dir, img_type)
+                           for name in open(filepath))
             # combine with the previous list of names
             names = names.union(this_set)
         return names
@@ -124,7 +131,8 @@ class ExperimentGenerator(object):
         # list_of_cameras_per_car: map each car with a list of distinct cameras that spot the car
         # list_of_car_names_per_camera: map each camera with a list of cars it spots
         # list_of_images_by_car_id: map each car image to its respective car id
-        # list_of_images_by_camera_id: map each car image to its respective camera id
+        # list_of_images_by_camera_id: map each car image to its respective
+        # camera id
         for image in self.__get_images():
             car_id = image.car_id
             camera_id = image.camera_id
@@ -143,18 +151,21 @@ class ExperimentGenerator(object):
 
     def __set_target_car(self):
         # count the number of times distinct cameras spot the car
-        # has to be greater than or equal to num_cams, or not drop percentage is going to be higher
+        # has to be greater than or equal to num_cams, or not drop percentage
+        # is going to be higher
         list_valid_target_cars = []
         for car_id, camera_ids in self.list_of_cameras_per_car.items():
             if len(camera_ids) >= self.num_cams:
                 list_valid_target_cars.append(car_id)
         # get the target car
         car_id = random.choice(list_valid_target_cars)
-        self.target_car = random.choice(list(self.list_of_images_by_car_id[car_id]))
+        self.target_car = random.choice(
+            list(self.list_of_images_by_car_id[car_id]))
 
     def __create_similar_target_car(self, target_car):
         while True:
-            similar_target_car = random.choice(list(self.list_of_images_by_car_id[target_car.car_id]))
+            similar_target_car = random.choice(
+                list(self.list_of_images_by_car_id[target_car.car_id]))
             # WARNING: If the car is only taken by one camera, this will go into an infinite loop
             # prevent that from happening with this check
             if self.__is_taken_by_only_one_camera(target_car.car_id):
@@ -171,14 +182,16 @@ class ExperimentGenerator(object):
         # determine whether or not to add a different target car image
         if not utils.should_drop(self.drop_percentage):
             num_imgs_per_camset = num_imgs_per_camset - 1
-            similar_target_car = self.__create_similar_target_car(self.target_car)
+            similar_target_car = self.__create_similar_target_car(
+                self.target_car)
             which_camera_id = similar_target_car.camera_id
             camset.add(similar_target_car)
         # grab images
         exist_car = list()
         for i in range(0, num_imgs_per_camset):
             while True:
-                random_car = random.choice(list(self.list_of_images_by_camera_id[which_camera_id]))
+                random_car = random.choice(
+                    list(self.list_of_images_by_camera_id[which_camera_id]))
                 # WARNING: If the dataset only contains one car, this will go into an infinite loop
                 # prevent that from happening with this check
                 if self.__is_only_one_car():
@@ -201,7 +214,9 @@ class ExperimentGenerator(object):
 
 
 class Image(object):
-    # assume image's name is in the format of carId_cameraId_timestamp_binary.jpg
+    # assume image's name is in the format of
+    # carId_cameraId_timestamp_binary.jpg
+
     def __init__(self, img_name, img_dir, img_type):
         self.name = img_name
         self.filepath = img_dir + "/" + img_name
@@ -209,7 +224,8 @@ class Image(object):
         self.__splitter = self.name.split("_")
         self.car_id = int(self.__splitter[0])
         self.camera_id = int(utils.get_numeric(self.__splitter[1]))
-        self.timestamp = datetime.datetime.fromtimestamp(int(self.__splitter[2]))
+        self.timestamp = datetime.datetime.fromtimestamp(
+            int(self.__splitter[2]))
         self.binary = int(os.path.splitext(self.__splitter[3])[0])
 
     def get_timestamp(self):
@@ -239,10 +255,12 @@ def main(args):
 
     # check that input_path points to a directory
     if not os.path.exists(veri_unzipped_path) or not os.path.isdir(veri_unzipped_path):
-        sys.exit("ERROR: filepath to VeRi directory (%s) is invalid" % veri_unzipped_path)
+        sys.exit("ERROR: filepath to VeRi directory (%s) is invalid" %
+                 veri_unzipped_path)
 
     # create the generator
-    exp = ExperimentGenerator(veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, typ)
+    exp = ExperimentGenerator(
+        veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, seed, typ)
 
     # generate the experiment
     set_num = 1
@@ -272,12 +290,14 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog="experiment.py", description="Generate sets of images for metrics", formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        prog="experiment.py", description="Generate sets of images for metrics", formatter_class=argparse.RawTextHelpFormatter)
     # arguments
     parser.add_argument("veri", default="veri_unzipped_path", action="store", type=str,
                         help="Path to the VeRi dataset unzipped.")
     # options
-    parser.add_argument("-v", "--version", action="version", version="Experiment Generator 1.0")
+    parser.add_argument("-v", "--version", action="version",
+                        version="Experiment Generator 1.0")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
     parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
