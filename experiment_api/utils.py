@@ -2,6 +2,7 @@ import cProfile
 import datetime
 import enum
 import json
+import os
 import random
 import re
 import time
@@ -41,14 +42,33 @@ def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
     If the value does not exist in the list, then return the
     length of the list.
     Args:
-        list_of_tuple: a list of tuples i.e. [(index1, index2)]
-        index_of_tuple: which index in the tuple you want to compare the value to
+        list_of_tuple: a list of tuples i.e. [(index1, index2, index3)]
+        index_of_tuple_1: which index in the tuple you want to compare the value to
         value: the value to search
     Return:
         the number of items in the list it has compared
     """
     for index_of_list, tupl in enumerate(list_of_tuple):
         if tupl[index_of_tuple] == value:
+            return index_of_list + 1
+    # could not find value in list_of_tuple, so return length of tuple
+    return len(list_of_tuple)
+
+
+def get_index_of_pairs(list_of_tuple, index_of_tuple_1, index_of_tuple_2, value):
+    """ Determine how far through the list to find the value.
+    If the value does not exist in the list, then return the
+    length of the list.
+    Args:
+        list_of_tuple: a list of tuples i.e. [(index1, index2, index3)]
+        index_of_tuple_1: which index in the tuple you want to compare the value to
+        index_of_tuple_2: which index in the tuple you want to compare the value to
+        value: the value to search
+    Return:
+        the number of items in the list it has compared
+    """
+    for index_of_list, tupl in enumerate(list_of_tuple):
+        if tupl[index_of_tuple_1] == value and tupl[index_of_tuple_2] == value:
             return index_of_list + 1
     # could not find value in list_of_tuple, so return length of tuple
     return len(list_of_tuple)
@@ -123,6 +143,20 @@ def read_json(filepath):
     with open(filepath) as file:
         for line in file:
             yield json.loads(line)
+
+
+def remove_file(filename):
+    """ Assuming the filename exists where the application is run,
+    remove the file.
+    Args:
+        filename
+    Returns:
+        filename is removed
+    """
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
 
 
 def timewrapper(func):

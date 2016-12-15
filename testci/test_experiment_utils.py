@@ -17,12 +17,12 @@ def test_ImageType():
 
 def test_get_index_of_tuple():
     TEST_LIST = [
-        (0, 'Who'),
-        (1, 'What'),
-        (2, 'Where'),
-        (3, 'When'),
-        (4, 'How'),
-        (5, None),
+        (0, 'Who', 'John'),
+        (1, 'What', 'Pizza'),
+        (2, 'Where', 'Little Caesar'),
+        (3, 'When', 'Noon'),
+        (4, 'How', 'Eat'),
+        (5, None, None),
     ]
 
     # Test that we can find ints, strings, and Nones
