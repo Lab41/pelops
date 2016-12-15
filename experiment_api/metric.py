@@ -75,7 +75,10 @@ class MetricRunner(object):
         # optional but initialized
         self.seed = seed
         self.typ = typ
-        logging.basicConfig(filename="metric.log", level=logging.DEBUG)
+        # logging
+        log_file = "metric.log"
+        utils.remove_file(log_file)
+        logging.basicConfig(filename=log_file, level=logging.DEBUG)
 
     # @timewrapper
     def run_str(self):
@@ -148,6 +151,7 @@ class MetricRunner(object):
         camsets = exp.generate()
 
         logging.info("Match target car to its respective vector")
+        logging.info("target {}".format(exp.target_car.name))
         target_car_vector = feature_vectors[exp.target_car.name]
 
         logging.info("Identify chosen set vs comparison set")
@@ -159,24 +163,8 @@ class MetricRunner(object):
         # comparison
         comp_sets = {
             CMC: camsets,
-            STR: camsets.pop(0),
+            STR: camsets[1:],
         }.get(which_metric)
-
-        print(len(chosen_set))
-        print(len(comp_sets))
-        index = 1
-        for i in chosen_set:
-            logging.info("chosen_set {}: {}".format(index, i.name))
-            index = index + 1
-
-        index_set = 1
-        for comp_set in comp_sets:
-            index = 1
-            for i in comp_set: 
-                logging.info("{} comp_set {}: {}".format(index_set, index, i.name))
-                index = index + 1
-            index_set = index_set + 1
-
 
         logging.info("Calculate cosine distances between the sets")
         cosine_distances = list()
@@ -196,7 +184,10 @@ class MetricRunner(object):
         cosine_distances = sorted(cosine_distances, key=lambda tupl:tupl[COSINE_DISTANCE_INDEX])
 
         logging.info("Determine how many times we have to go through the sorted list to find the matching target car")
-        attempt = utils.get_index_of_tuple(cosine_distances, CHOSEN_CAR_INDEX, COMP_CAR_INDEX, exp.target_car.car_id)
+        attempt = {
+            CMC: utils.get_index_of_tuple(cosine_distances, COMP_CAR_INDEX, exp.target_car.car_id),
+            STR: utils.get_index_of_pairs(cosine_distances, CHOSEN_CAR_INDEX, COMP_CAR_INDEX, exp.target_car.car_id),
+        }.get(which_metric)
 
         return attempt
 

@@ -208,8 +208,6 @@ class ExperimentGenerator(object):
             exist_car.append(random_car.car_id)
             # exist_timestamp.append(random_car.timestamp)
             camset.add(random_car)
-            # see if the image added is the same and if it is check the timestamp
-        # return camset
         return camset
 
     def generate(self):
