@@ -121,12 +121,6 @@ class ExperimentGenerator(object):
         }.get(self.typ)
         # }.get(self.typ, 0) # default to all
 
-    def __unset_lists(self):
-        self.list_of_cameras_per_car = collections.defaultdict(set)
-        self.list_of_cameras = list()
-        self.list_of_images_by_car_id = collections.defaultdict(set)
-        self.list_of_images_by_camera_id = collections.defaultdict(set)
-
     def __set_lists(self):
         # TODO: figure out a better way to go about doing this
         # list_of_cameras_per_car: map each car with a list of distinct cameras that spot the car
@@ -216,7 +210,6 @@ class ExperimentGenerator(object):
         output = list()
         for i in range(0, self.num_cams):
             output.append(self.__get_camset())
-        self.__unset_lists()
         return output
 
 
