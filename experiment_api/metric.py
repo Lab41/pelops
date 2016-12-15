@@ -8,6 +8,11 @@ This script will create a plot that will have
        divided by
        (the number of run)
 
+Output:
+    * cmc_metric.pdf: plot of CMC metric
+    * str_metric.pdf: plot of STR metric
+    * metric.log: log messages 
+
 Reliance:
     The script will rely on ExperimentGenerator to build a list of sets (of images) for the experiment.
 
@@ -17,20 +22,26 @@ Metric:
                 meaning the target car will exist in the set.
        Step #2: Match each feature vector to the images in the set.
        Step #3: Calculate the cosine distance of the target car's feature vector and the feature vector
-                of each image in the set.
-       Step #4: Figure out which image has the shortest cosine distance to the target car.
-       Step #5: Sort the list of images in the set by the shortest cosine distance.
-       Step #6: Determine how many images it has to go through in the set to match the target car.
-                Add this value into a list.
-       Step #7: Plot out the graph.
+                of each image in the set, resulting in 10 computations.
+       Step #4: Sort the list of images in the set by the shortest cosine distance.
+       Step #5: Determine how many images it has to go through the sorted cosine distance list to 
+                find the target car. 
+       Step #6: Plot out the graph.
 
     2. STR: compare a set of 10 car images with another set of 10 car images
-       Similar to CMC, except that 10 car images are compared to another 10 car images instead of
-       the target car image compared to 10 car images.
+       Step #1: Using the ExperimentGenerator, create two sets of 10 car images with zero drop rate,
+                meaning the target car will exist in both set.
+       Step #2: Match each feature vector to the images in the sets.
+       Step #3: Calculate the cosine distance of each car's feature vector in set 1 and set 2,
+                resulting in 100 computations. 
+       Step #4: Sort the list of images in the set by the shortest cosine distance.
+       Step #5: Determine how many image pairs it has to go through the sorted cosine distance list to 
+                find the target car image pair. 
+       Step #6: Plot out the graph.
 
 Usage:
     metric.py [-hv]
-    metric.py [-e <SEED> -y <TYPE> -c -s] -r <NUM_RUN> <VERI> <FEATURE>
+    metric.py [-e <SEED> -c -s] -y <TYPE> -r <NUM_RUN> <VERI> <FEATURE>
 
 Arguments:
     VERI                            : Path to the VeRi dataset unzipped
@@ -40,17 +51,17 @@ Arguments:
 Options:
     -h, --help                      : Show this help message.
     -v, --version                   : Show the version number.
-    -e, --seed=<SEED>               : Seed to be used for random number generator (default: random [1-100])
-    -y, --type=<TYPE>               : Determine which type of images and features to use.
-                                      0: all, 1: query, 2: test, 3: train (default: test)
-    -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
     -c, --cmc                       : Run CMC metric
     -s, --str                       : Run STR metric
+    -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
+    -y, --type=<TYPE>               : Determine which type of images and features to use.
+                                      0: all, 1: query, 2: test, 3: train 
+    -e, --seed=<SEED>               : Seed to be used for random number generator (default: random [1-100])
 
 """
 
+import argparse
 import collections
-import docopt
 import logging
 import matplotlib.pyplot as plt
 import os
@@ -90,12 +101,11 @@ class MetricRunner(object):
         num_cams = 2
         num_cars_per_cam = 10
         drop_percentage = 0
-        time = 5  # TODO: currently this value does not matter
         logging.info("-" * 80)
         logging.info("Instantiate ExperimentGenerator")
         logging.info("num_cams = {}, num_cars_per_cam = {}, drop_percentage = {}".format(num_cams, num_cars_per_cam, drop_percentage))
         logging.info("-" * 80)
-        exp = ExperimentGenerator(self.veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, self.seed, time, self.typ)
+        exp = ExperimentGenerator(self.veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, self.seed, self.typ)
         # run the metric
         self.__run(exp, MetricRunner.STR)
         logging.info("=" * 80)
@@ -111,12 +121,11 @@ class MetricRunner(object):
         num_cams = 1
         num_cars_per_cam = 10
         drop_percentage = 0
-        time = 5  # TODO: currently this value does not matter
         logging.info("-" * 80)
         logging.info("Instantiate ExperimentGenerator")
         logging.info("num_cams = {}, num_cars_per_cam = {}, drop_percentage = {}".format(num_cams, num_cars_per_cam, drop_percentage))
         logging.info("-" * 80)
-        exp = ExperimentGenerator(self.veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, self.seed, time, self.typ)
+        exp = ExperimentGenerator(self.veri_unzipped_path, num_cams, num_cars_per_cam, drop_percentage, self.seed, self.typ)
         # run the metric
         self.__run(exp, MetricRunner.CMC)
         logging.info("=" * 80)
@@ -135,7 +144,11 @@ class MetricRunner(object):
             logging.info(attempts)
             logging.info("-" * 80)
         # plot the output
-        self.__plot(collections.Counter(attempts))
+        output_name = {
+            MetricRunner.CMC: "cmc_metric.pdf",
+            MetricRunner.STR: "str_metric.pdf", 
+        }.get(which_metric)
+        self.__plot(collections.Counter(attempts), output_name)
         return
 
     def __get_attempt(self, exp, feature_vectors, which_metric):
@@ -201,7 +214,7 @@ class MetricRunner(object):
             feature_vectors[obj["imageName"]] = obj["resnet50"]
         return feature_vectors
 
-    def __plot(self, num_per_index):
+    def __plot(self, num_per_index, output_name):
         def get_y(x):
             y = list()
             total = 0.
@@ -227,7 +240,7 @@ class MetricRunner(object):
         """
         # annotate only the first point
         plt.annotate(y[0], xy=(x[0], y[0]))
-        plt.savefig("cmc_metric.pdf")
+        plt.savefig(output_name)
         return
 
 
@@ -237,31 +250,13 @@ class MetricRunner(object):
 
 def main(args):
     # extract arguments from command line
-    try:
-        # which metrics
-        if args["--cmc"]:
-            is_cmc = True
-        else:
-            is_cmc = False
-        if args["--str"]:
-            is_str = True
-        else:
-            is_str = False
-        # mandatory
-        veri_unzipped_path = args["<VERI>"]
-        feature_path = args["<FEATURE>"]
-        num_run = int(args["--num_run"])
-        # optionals
-        if args["--seed"]:
-            seed = int(args["--seed"])
-        else:  # set default
-            seed = random.randint(1, 100)
-        if args["--type"]:
-            typ = int(args["--type"])
-        else:  # set default
-            typ = utils.ImageType.TEST.value
-    except docopt.DocoptExit as e:
-        sys.exit("ERROR: input invalid options: %s" % e)
+    veri_unzipped_path = args.veri
+    feature_path = args.feature
+    is_cmc = args.cmc
+    is_str = args.str
+    num_run = args.num_run
+    typ  = args.type
+    seed = args.seed
 
     # check that input_path points to a directory
     if not os.path.exists(veri_unzipped_path) or not os.path.isdir(veri_unzipped_path):
@@ -286,5 +281,23 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = docopt.docopt(__doc__, version="Metric Runner 1.0")
-    main(args)
+    parser = argparse.ArgumentParser(prog="metric.py", description="Run metrics to determine how well the ResNet model identify the same car. Outputs: ", formatter_class=argparse.RawTextHelpFormatter)
+    # arguments
+    parser.add_argument("veri", default="veri", action="store", type=str,
+                        help="Path to the VeRi dataset unzipped.")
+    parser.add_argument("feature", default="feature", action="store", type=str,
+                        help="Path to the feature json file.\nMake sure that feature is the same type as TYPE.")
+    # options
+    parser.add_argument("-v", "--version", action="version", version="Metric Runner 1.0")
+    parser.add_argument("-c", "--cmc", dest="cmc", action="store_true", default=False, 
+                        help="Run CMC metric.")
+    parser.add_argument("-s", "--str", dest="str", action="store_true", default=False,
+                        help="Run STR metric.")
+    parser.add_argument("-r", dest="num_run", action="store", type=int,
+                        help="NUM_RUN defines how many iterations to run the metric.")
+    parser.add_argument("-y", dest="type", action="store", type=int, 
+                        help="TYPE specifies the type of data used to create the feature json file.\n0: all, 1: query, 2: test, 3: train")
+    parser.add_argument("-e", dest="seed", action="store", type=int,
+                        default=random.randint(1, 100),
+                        help="(OPTIONAL) SEED is used for random number generator.")    
+    main(parser.parse_args())

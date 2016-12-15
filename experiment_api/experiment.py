@@ -40,10 +40,10 @@ Example:
 
 Usage:
     experiment.py [-hv]
-    experiment.py [-e <SEED>] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -y <TYPE> <INPUT_PATH>
+    experiment.py [-e <SEED>] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -y <TYPE> <VERI>
 
 Arguments:
-    INPUT_PATH                      : Path to the VeRi dataset unzipped
+    VERI                            : Path to the VeRi dataset unzipped
 
 Options:
     -h, --help                      : Show this help message.
@@ -51,14 +51,14 @@ Options:
     -s, --cams=<NUM_CAMS>           : Each camera maps to a set. NUM_CAMS specify the number of camera sets to be outputted.
     -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
-    -e, --seed=<SEED>               : Seed to be used for random number generator.
     -y, --type=<TYPE>               : Determine which type of images to use.
                                       0: all, 1: query, 2: test, 3: train
+    -e, --seed=<SEED>               : Seed to be used for random number generator.
 
 """
 
-import collections
 import argparse
+import collections
 import datetime
 import os
 import random
@@ -74,8 +74,8 @@ class ExperimentGenerator(object):
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
-        self.seed = seed
         self.typ = typ
+        self.seed = seed
         # stuff that needs to be initialized
         random.seed(self.seed)
         self.list_of_cameras_per_car = collections.defaultdict(set)
@@ -230,12 +230,12 @@ class Image(object):
 # @timewrapper
 def main(args):
     # extract arguments from command line
-    veri_unzipped_path = args.input
+    veri_unzipped_path = args.veri
     num_cams = args.num_cams
     num_cars_per_cam = args.num_cars_per_cam
     drop_percentage = args.drop_percentage
-    seed = args.seed
     typ = args.type
+    seed = args.seed
 
     # check that input_path points to a directory
     if not os.path.exists(veri_unzipped_path) or not os.path.isdir(veri_unzipped_path):
@@ -273,19 +273,21 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="experiment.py", description="Generate sets of images for metrics", formatter_class=argparse.RawTextHelpFormatter)
+    # arguments
+    parser.add_argument("veri", default="veri_unzipped_path", action="store", type=str,
+                        help="Path to the VeRi dataset unzipped.")
+    # options
     parser.add_argument("-v", "--version", action="version", version="Experiment Generator 1.0")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
     parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
                         help="Each set has a list of car images. The cars in a set are distinct.\nNUM_CARS_PER_CAM specifies the number of car images in each camera set.")
     parser.add_argument("-d", dest="drop_percentage", action="store", type=float,
-                        help="DROP_PERCENTAGE specifies the likelihood that\nthe target car image is dropped (float from [0,1])")
+                        help="DROP_PERCENTAGE specifies the likelihood that\nthe target car image is dropped (float from [0,1]).")
+    parser.add_argument("-y", dest="type", action="store", type=int,
+                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
     parser.add_argument("-e", dest="seed", action="store", type=int,
                         default=random.randint(1, 100),
                         help="(OPTIONAL) SEED is used for random number generator.")
-    parser.add_argument("-y", dest="type", action="store", type=int, 
-                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
-    parser.add_argument("input", default="veri_unzipped_path", action="store", type=str, 
-                        help="Path to the VeRi dataset unzipped"
-                        )
+
     main(parser.parse_args())
