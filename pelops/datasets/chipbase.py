@@ -2,7 +2,8 @@ from abc import ABCMeta
 from abc import abstractmethod
 from collections import namedtuple
 
-Chip = namedtuple('Chip', ['chip_id', 'car_id', 'camid', 'time', 'filename', 'misc'])
+Chip = namedtuple('Chip', ['chip_id', 'car_id',
+                           'cam_id', 'time', 'filename', 'misc'])
 
 
 class ChipBase(object):
@@ -11,11 +12,11 @@ class ChipBase(object):
     def __init__(self, dataset_name, *args, **kwargs):
         self.dataset_name = dataset_name
 
-    def get_all_chips_by_carid(self, carid):
-        return [chip  for chip in self.chips if chip.carid == carid]
+    def get_all_chips_by_carid(self, car_id):
+        return [chip for chip in self.chips if chip.car_id == car_id]
 
-    def get_all_chips_by_camid(self, carid):
-        return [chip  for chip in self.chips if chip.camid == camid]
+    def get_all_chips_by_camid(self, cam_id):
+        return [chip for chip in self.chips if chip.cam_id == cam_id]
 
     @abstractmethod
     def get_chip_image_path(self, chip_id):
@@ -34,5 +35,3 @@ class ChipBase(object):
 
     def __len__(self):
         return len(self.chips)
-
-
