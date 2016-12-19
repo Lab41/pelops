@@ -33,9 +33,9 @@ class STR_SA(ChipBase):
             # Set all Chip variables
             car_id = get_sa_car_id(path)
             cam_id = get_sa_cam_id(path)
-            chip_id = str(car_id) + "_" + str(cam_id)
             time = cam_id  # Cars always pass the first camera first
-            misc = None  # No misc data
+            chip_id = str(car_id) + "_" + str(cam_id) + "_" + str(time)
+            misc = None  # No miscellaneous data
 
             # Make chip
             chip = Chip(
