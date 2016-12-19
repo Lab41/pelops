@@ -7,15 +7,21 @@ from chipbase import ChipBase
 
 class STR_SA(ChipBase):
 
-    def __init__(self, directory, dataset_name="STR_SA", *args, **kwargs):
+    def __init__(self, dataset_name="STR_SA", *args, **kwargs):
         super().__init__(dataset_name, args, kwargs)
 
-        # Get some chips
-        self.__load_chips(directory)
+        # Read the kawrgs
+        try:
+            self.directory = kwargs["directory"]
+        except:
+            raise ValueError("'directory' is a required argument")
 
-    def __load_chips(self, directory):
-        for file in listdir(directory):
-            path = directory + '/' + file
+        # Get some chips
+        self.__load_chips()
+
+    def __load_chips(self):
+        for file in listdir(self.directory):
+            path = self.directory + '/' + file
 
             # Only interested in certain files
             is_valid = isfile(path)
