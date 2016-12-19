@@ -1,10 +1,6 @@
 import datetime as dt
 
-import pytest
-
-import experiment_api.utils as utils
-# 3rd Party Libraries
-# Library being tested
+import pelops.experiment_api.utils as utils
 
 
 def test_ImageType():
