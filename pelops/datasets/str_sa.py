@@ -1,8 +1,8 @@
 from os import listdir
 from os.path import isfile
 
-from chipbase import Chip
-from chipbase import ChipBase
+from pelops.datasets.chipbase import Chip
+from pelops.datasets.chipbase import ChipBase
 
 
 class STR_SA(ChipBase):
