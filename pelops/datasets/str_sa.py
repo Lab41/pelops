@@ -1,4 +1,5 @@
 from os import listdir
+from os.path import basename
 from os.path import isfile
 
 from pelops.datasets.chipbase import Chip
@@ -51,7 +52,9 @@ class STR_SA(ChipBase):
 
 
 def int_from_string(string, start_chars, int_len):
-    loc = string.find(start_chars)
+    # We only want to use the filename, not the directory names
+    base_string = basename(string)
+    loc = base_string.find(start_chars)
 
     # Not found
     if loc < 0:
@@ -59,7 +62,7 @@ def int_from_string(string, start_chars, int_len):
 
     start = loc + len(start_chars)
     end = start + int_len
-    str_num = string[start:end]
+    str_num = base_string[start:end]
     return int(str_num)
 
 
