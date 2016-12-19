@@ -43,13 +43,6 @@ class STR_SA(ChipBase):
 
             self.chips[chip_id] = chip
 
-    def get_chip_image_path(self, chip_id):
-        chip = self.chips.get(chip_id, None)
-        if chip is not None:
-            return chip.filename
-        else:
-            return None
-
 
 def int_from_string(string, start_chars, int_len):
     loc = string.find(start_chars)

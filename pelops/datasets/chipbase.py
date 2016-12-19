@@ -19,9 +19,21 @@ class ChipBase(object):
     def get_all_chips_by_camid(self, cam_id):
         return [chip for chip in self.chips.values() if chip.cam_id == cam_id]
 
-    @abstractmethod
     def get_chip_image_path(self, chip_id):
-        pass
+        """Returns the image path associated with a specific chip.
+
+        Args:
+            chip_id: Unique id of the chip to retrieve the image path from.
+
+        Returns:
+            str: Returns a string indicating the full image path, or
+                None if the chip is not found.
+        """
+        chip = self.chips.get(chip_id, None)
+        if chip is not None:
+            return chip.filename
+        else:
+            return None
 
     def __iter__(self):
         """
