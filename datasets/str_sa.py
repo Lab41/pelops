@@ -14,8 +14,6 @@ class STR_SA(ChipBase):
         self.__load_chips(directory)
 
     def __load_chips(self, directory):
-        self.chips = {}
-
         for file in listdir(directory):
             path = directory + '/' + file
 
@@ -44,12 +42,6 @@ class STR_SA(ChipBase):
             )
 
             self.chips[chip_id] = chip
-
-    def get_all_chips_by_carid(self, carid):
-        return [chip for chip in self.chips.values() if chip.car_id == carid]
-
-    def get_all_chips_by_camid(self, camid):
-        return [chip for chip in self.chips.values() if chip.camid == camid]
 
     def get_chip_image_path(self, chip_id):
         chip = self.chips.get(chip_id, None)
