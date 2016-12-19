@@ -1,13 +1,14 @@
 import chip
 
 # ================================================================================
-#  Veri Dataset
+#  CompCars Dataset
 # ================================================================================
 
 
 class CompCarsDataset(chip.ChipDataset):
-    """
-    """
+    filenames = collections.namedtuple("filenames", [
+        ""])
+
     class Factory:
         def create()
 
@@ -24,7 +25,7 @@ class CompCarsDataset(chip.ChipDataset):
         return
 
 # ================================================================================
-#  Veri Chip
+#  CompCars Chip
 # ================================================================================
 
 

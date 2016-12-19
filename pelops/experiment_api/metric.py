@@ -69,8 +69,8 @@ import random
 import scipy
 import scipy.spatial
 import sys
-import utils
 
+import pelops.utils as utils
 from experiment import ExperimentGenerator
 
 
