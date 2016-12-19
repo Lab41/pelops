@@ -1,3 +1,14 @@
+# Controls the build environment
 machine:
   python:
     version: 3.5.2
+
+# Set up the commands to run as a test (override), as well as the commands to
+# run before (pre) and after (post).
+test:
+  pre:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+  override:
+    - python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
+  post:
+    - bash <(curl -s https://codecov.io/bash) -t 08234947-61d0-48ea-b0f0-1c82d3f2dfd7
