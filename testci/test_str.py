@@ -27,8 +27,6 @@ def str_sa(tmpdir):
     # Setup the class
     instantiated_class = StrDataset(os.path.dirname(out_file.dirname))
 
-    assert out_file.dirname
-
     # Rename filepath
     FILE_NAMES = (
         (out_file.dirname + "/" + "match00001_cam02.png", 1, 2, 2, None),
