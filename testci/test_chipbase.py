@@ -1,35 +1,33 @@
 import pytest
 
-from pelops.datasets.chipbase import Chip
-from pelops.datasets.chipbase import ChipBase
+from pelops.datasets.chip import ChipDataset, Chip
 
 
 @pytest.fixture
 def chips():
     CHIPS = (
-        # car_id, cam_id, time, filename, misc
-        (1, 1, 100, "car1_cam1.png", None),
-        (1, 2, 105, "car1_cam2.png", None),
-        (1, 3, 110, "car1_cam3.png", None),
-        (2, 1, 100, "car1_cam1.png", None),
-        (2, 1, 102, "car1_cam2.png", None),
-        (2, 1, 104, "car1_cam3.png", None),
+        # filepath, car_id, cam_id, time, misc
+        ("car1_cam1.png", 1, 1, 100, None),
+        ("car1_cam2.png", 1, 2, 105, None),
+        ("car1_cam3.png", 1, 3, 110, None),
+        ("car1_cam1.png", 2, 1, 100, None),
+        ("car1_cam2.png", 2, 1, 102, None),
+        ("car1_cam3.png", 2, 1, 104, None),
     )
 
     chips = {}
-    for car_id, cam_id, time, filename, misc in CHIPS:
-        chip_id = '_'.join((str(car_id), str(cam_id), str(time)))
-        chip = Chip(chip_id, car_id, cam_id, time, filename, misc)
-        chips[chip_id] = chip
+    for filepath, car_id, cam_id, time, misc in CHIPS:
+        chip = Chip(filepath, car_id, cam_id, time, misc)
+        chips[filepath] = chip
 
     return chips
 
 
 @pytest.fixture
-def chipbase(chips):
-    """ Set up a instance of ChipBase(). """
+def chip_dataset(chips):
+    """ Set up a instance of ChipDataset(). """
     # Setup the class
-    instantiated_class = ChipBase(dataset_name="Test")
+    instantiated_class = ChipDataset(dataset_path="Test")
 
     # Monkey Patch in a fake chips dictionary
     instantiated_class.chips = chips
@@ -37,9 +35,9 @@ def chipbase(chips):
     return instantiated_class
 
 
-def test_chips_len(chipbase, chips):
-    """ Test that ChipBase.chips is the correct length """
-    assert len(chips) == len(chipbase)
+def test_chips_len(chip_dataset, chips):
+    """ Test that ChipDataset.chips is the correct length """
+    assert len(chips) == len(chip_dataset)
 
 
 def get_all_function_tester(in_chips, in_chipbase, index, test_function):
@@ -53,8 +51,8 @@ def get_all_function_tester(in_chips, in_chipbase, index, test_function):
     Args:
         in_chips: The output of chips()
         in_chipbase: The output of chipbase()
-        index: The location of the id in the chips object to use to compare. 0
-            is the chip_id, 1 is the car_id, 2 is the cam_id.
+        index: The location of the id in the chips object to use to compare. 
+            0 is the filepath (aka chip_id), 1 is the car_id, 2 is the cam_id.
         test_function: The function to test, it should return a list of chips
             selected by some id value.
 
@@ -78,27 +76,20 @@ def get_all_function_tester(in_chips, in_chipbase, index, test_function):
         assert chips_list == test_chips
 
 
-def test_get_all_chips_by_car_id(chipbase, chips):
-    """ Test ChipBase.get_all_chips_by_carid() """
+def test_get_all_chips_by_car_id(chip_dataset, chips):
+    """ Test ChipDataset.get_all_chips_by_carid() """
     CAR_ID_INDEX = 1
-    get_all_function_tester(chips, chipbase, CAR_ID_INDEX,
-                            chipbase.get_all_chips_by_carid)
+    get_all_function_tester(chips, chip_dataset, CAR_ID_INDEX,
+                            chip_dataset.get_all_chips_by_car_id)
 
 
-def test_get_all_chips_by_cam_id(chipbase, chips):
-    """ Test ChipBase.get_all_chips_by_camid() """
+def test_get_all_chips_by_cam_id(chip_dataset, chips):
+    """ Test ChipDataset.get_all_chips_by_camid() """
     CAM_ID_INDEX = 2
-    get_all_function_tester(chips, chipbase, CAM_ID_INDEX,
-                            chipbase.get_all_chips_by_camid)
+    get_all_function_tester(chips, chip_dataset, CAM_ID_INDEX,
+                            chip_dataset.get_all_chips_by_cam_id)
 
-
-def test_get_chip_image_path(chipbase, chips):
-    """ Test ChipBase.get_chip_image_path() """
-    for chip_id, chip in chips.items():
-        assert chip.filename == chipbase.get_chip_image_path(chip_id)
-
-
-def test_chipbase_iter(chipbase, chips):
-    """ Test iteration over ChipBase() """
-    for chip in chipbase:
+def test_chipdataset_iter(chip_dataset, chips):
+    """ Test iteration over ChipDataset() """
+    for chip in chip_dataset:
         assert chip in chips.values()
