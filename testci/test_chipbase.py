@@ -42,40 +42,54 @@ def test_chips_len(chipbase, chips):
     assert len(chips) == len(chipbase)
 
 
+def get_all_function_tester(in_chips, in_chipbase, index, test_function):
+    """ Check that a chip getting function gets all the correct chips.
+
+    This function tests a chip getting function, such as
+    `get_all_chips_by_carid()` by creating a list of every correct chip from
+    the true list of chips, and comparing it to the list returned by the
+    function.
+
+    Args:
+        in_chips: The output of chips()
+        in_chipbase: The output of chipbase()
+        index: The location of the id in the chips object to use to compare. 0
+            is the chip_id, 1 is the car_id, 2 is the cam_id.
+        test_function: The function to test, it should return a list of chips
+            selected by some id value.
+
+    Returns:
+        None
+    """
+    seen_ids = []
+    for tup in in_chips.values():
+        test_id = tup[index]
+        # Generate all the chips by hand, and compare
+        if test_id in seen_ids:
+            continue
+        seen_ids.append(test_id)
+        chips_list = []
+        for _, val in in_chipbase.chips.items():
+            if val[index] == test_id:
+                chips_list.append(val)
+
+        chips_list.sort()
+        test_chips = sorted(test_function(test_id))
+        assert chips_list == test_chips
+
+
 def test_get_all_chips_by_car_id(chipbase, chips):
     """ Test ChipBase.get_all_chips_by_carid() """
-    seen_ids = []
-    for chip_id, car_id, cam_id, _, _, _ in chips.values():
-        # Generate all the chips by hand, and compare
-        if car_id in seen_ids:
-            continue
-        seen_ids.append(car_id)
-        chips = []
-        for key, val in chipbase.chips.items():
-            if val.car_id == car_id:
-                chips.append(val)
-
-        chips.sort()
-        test_chips = sorted(chipbase.get_all_chips_by_carid(car_id))
-        assert chips == test_chips
+    CAR_ID_INDEX = 1
+    get_all_function_tester(chips, chipbase, CAR_ID_INDEX,
+                            chipbase.get_all_chips_by_carid)
 
 
 def test_get_all_chips_by_cam_id(chipbase, chips):
     """ Test ChipBase.get_all_chips_by_camid() """
-    seen_ids = []
-    for chip_id, car_id, cam_id, _, _, _ in chips.values():
-        # Generate all the chips by hand, and compare
-        if cam_id in seen_ids:
-            continue
-        seen_ids.append(cam_id)
-        chips = []
-        for key, val in chipbase.chips.items():
-            if val.cam_id == cam_id:
-                chips.append(val)
-
-        chips.sort()
-        test_chips = sorted(chipbase.get_all_chips_by_camid(cam_id))
-        assert chips == test_chips
+    CAM_ID_INDEX = 2
+    get_all_function_tester(chips, chipbase, CAM_ID_INDEX,
+                            chipbase.get_all_chips_by_camid)
 
 
 def test_get_chip_image_path(chipbase, chips):
