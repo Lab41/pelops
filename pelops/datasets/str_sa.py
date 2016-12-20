@@ -1,10 +1,8 @@
 
-import chip
 import collections
 import os
 
-import pelops.utils as utils
-
+import pelops.datasets.chip as chip
 
 # ================================================================================
 #  STR_SA Dataset
