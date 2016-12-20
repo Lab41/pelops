@@ -63,7 +63,7 @@ import os
 import random
 import sys
 
-import utils
+import pelops.utils as utils
 
 
 class ExperimentGenerator(object):
