@@ -9,7 +9,6 @@ setup(
     author="Lab41",
     author_email="lab41@iqt.org",
     license="Apache Software License",
-    platform=["any"],
     packages=["pelops"],
     classifiers=[
         "Development Status :: 3 - Alpha",

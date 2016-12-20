@@ -58,7 +58,7 @@ def test_str_sa_chips_vals(str_sa):
         assert chip.filename
 
 
-def test_get_all_chips_by_carid(str_sa):
+def test_get_all_chips_by_car_id(str_sa):
     """ Test STR_SA.get_all_chips_by_carid() """
     instantiated_class = str_sa[0]
     FILE_NAMES = str_sa[1]
