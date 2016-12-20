@@ -1,31 +1,36 @@
-from os import listdir
-from os.path import basename
-from os.path import isfile
+import chip
+import collections
+import os
 
-from pelops.datasets.chipbase import Chip
-from pelops.datasets.chipbase import ChipBase
+import pelops.utils as utils
+
+# ================================================================================
+#  STR_SA Dataset
+# ================================================================================
 
 
-class STR_SA(ChipBase):
+class StrDataset(chip.ChipDataset):
+    filenames = collections.namedtuple("filenames", [
+        "dir_all"])
+    filepaths = filenames (
+        "crossCameraMatches")
 
-    def __init__(self, dataset_name="STR_SA", *args, **kwargs):
-        super().__init__(dataset_name, args, kwargs)
+    def __init__(self, dataset_path):
+        super().__init__(dataset_path)
+        self.__set_filepaths()
+        self.chips = self.get_all_chips()
 
-        # Read the kawrgs
-        try:
-            self.directory = kwargs["directory"]
-        except:
-            raise ValueError("'directory' is a required argument")
+    def __set_filepaths(self):
+        self.__filepaths = StrDataset.filenames(
+            self.dataset_path + "/" + StrDataset.filepaths.dir_all)
 
-        # Get some chips
-        self.__load_chips()
-
-    def __load_chips(self):
-        for file in listdir(self.directory):
-            path = self.directory + '/' + file
+    def get_all_chips(self):
+        chips = list()
+        for file in os.listdir(self.__filepaths.dir_all):
+            path = self.__filepaths.dir_all + '/' + file
 
             # Only interested in certain files
-            is_valid = isfile(path)
+            is_valid = os.path.isfile(path)
             is_png = path.endswith(".png")
             is_mask = "mask" in path
             if not is_valid or not is_png or is_mask:
@@ -34,26 +39,27 @@ class STR_SA(ChipBase):
             # Set all Chip variables
             car_id = get_sa_car_id(path)
             cam_id = get_sa_cam_id(path)
+
             time = cam_id  # Cars always pass the first camera first
             chip_id = str(car_id) + "_" + str(cam_id) + "_" + str(time)
             misc = None  # No miscellaneous data
 
             # Make chip
-            chip = Chip(
-                chip_id,
+            chip = StrChip(
+                path,
                 car_id,
                 cam_id,
                 time,
-                path,
-                misc,
             )
 
-            self.chips[chip_id] = chip
+            #chips[chip_id] = chip
+            chips.append(chip)
+        return chips
 
 
 def int_from_string(string, start_chars, int_len):
     # We only want to use the filename, not the directory names
-    base_string = basename(string)
+    base_string = os.path.basename(string)
     loc = base_string.find(start_chars)
 
     # Not found
@@ -72,3 +78,11 @@ def get_sa_cam_id(string):
 
 def get_sa_car_id(string):
     return int_from_string(string, start_chars="match", int_len=5)
+
+# ================================================================================
+#  STR_SA Chip
+# ================================================================================
+
+class StrChip(chip.ChipBase):
+    def __init__(self, filepath, car_id, camera_id, timestamp):
+        super().__init__(filepath, car_id, camera_id, timestamp)
