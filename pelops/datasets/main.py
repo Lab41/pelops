@@ -2,8 +2,12 @@
 """
 
 import chip
-import veri
+import compcars
+import gdave
 import str_sa
+import veri
+
+
 
 def print_out_dataset_types():
     dataset_types = [dataset.__name__ for dataset in chip.ChipDataset.__subclasses__()]
