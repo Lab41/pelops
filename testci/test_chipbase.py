@@ -84,7 +84,7 @@ def test_get_chip_image_path(chipbase, chips):
         assert chip.filename == chipbase.get_chip_image_path(chip_id)
 
 
-def test_str_sa_iter(chipbase, chips):
+def test_chipbase_iter(chipbase, chips):
     """ Test iteration over ChipBase() """
     for chip in chipbase:
         assert chip in chips.values()
