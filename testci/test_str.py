@@ -1,10 +1,17 @@
 import pytest
 import os
 
+<<<<<<< HEAD:testci/test_str.py
 from pelops.datasets.str import get_sa_cam_id
 from pelops.datasets.str import get_sa_car_id
 from pelops.datasets.str import int_from_string
 from pelops.datasets.str import StrDataset
+=======
+from pelops.datasets.str_sa import get_sa_cam_id
+from pelops.datasets.str_sa import get_sa_car_id
+from pelops.datasets.str_sa import int_from_string
+from pelops.datasets.str_sa import StrDataset
+>>>>>>> fix str and revise its respective test:testci/test_str_sa.py
 
 
 @pytest.fixture
