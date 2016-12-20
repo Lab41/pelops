@@ -1,6 +1,6 @@
 import datetime as dt
 
-import pelops.experiment_api.utils as utils
+import pelops.utils as utils
 
 
 def test_ImageType():
