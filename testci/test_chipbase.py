@@ -42,6 +42,42 @@ def test_chips_len(chipbase, chips):
     assert len(chips) == len(chipbase)
 
 
+def test_get_all_chips_by_car_id(chipbase, chips):
+    """ Test ChipBase.get_all_chips_by_carid() """
+    seen_ids = []
+    for chip_id, car_id, cam_id, _, _, _ in chips.values():
+        # Generate all the chips by hand, and compare
+        if car_id in seen_ids:
+            continue
+        seen_ids.append(car_id)
+        chips = []
+        for key, val in chipbase.chips.items():
+            if val.car_id == car_id:
+                chips.append(val)
+
+        chips.sort()
+        test_chips = sorted(chipbase.get_all_chips_by_carid(car_id))
+        assert chips == test_chips
+
+
+def test_get_all_chips_by_cam_id(chipbase, chips):
+    """ Test ChipBase.get_all_chips_by_camid() """
+    seen_ids = []
+    for chip_id, car_id, cam_id, _, _, _ in chips.values():
+        # Generate all the chips by hand, and compare
+        if cam_id in seen_ids:
+            continue
+        seen_ids.append(cam_id)
+        chips = []
+        for key, val in chipbase.chips.items():
+            if val.cam_id == cam_id:
+                chips.append(val)
+
+        chips.sort()
+        test_chips = sorted(chipbase.get_all_chips_by_camid(cam_id))
+        assert chips == test_chips
+
+
 def test_get_chip_image_path(chipbase, chips):
     """ Test ChipBase.get_chip_image_path() """
     for chip_id, chip in chips.items():
