@@ -97,8 +97,9 @@ class ExperimentGenerator(object):
         # or not drop percentage is going to be higher
         list_valid_target_cars = []
         for car_id, cam_ids in self.list_of_cameras_per_car.items():
-            if len(cam_ids) >= self.num_cams:
+            if len(cam_ids) >= self.num_cams or self.num_cams > len(self.list_of_cameras):
                 list_valid_target_cars.append(car_id)
+
         # get the target car
         car_id = random.choice(list_valid_target_cars)
         self.target_car = random.choice(
@@ -190,7 +191,9 @@ def main(args):
             print("car id: {}".format(image.car_id))
             print("camera id: {}".format(image.cam_id))
             print("timestamp: {}".format(utils.get_timestamp(image.time)))
-            print("binary: {}".format(image.misc["binary"]))
+            if image.misc is not None:
+                for key, value in image.misc.iteritems():
+                    print("{}: {}".format(key, value))
             print("-" * 80)
         print("=" * 80)
         set_num = set_num + 1
