@@ -1,10 +1,19 @@
 import cProfile
 import datetime
+import enum
 import json
 import os
 import random
 import re
 import time
+
+class SetType(enum.Enum):
+    """ Types of set, i.e. training set
+    """
+    ALL = 0
+    QUERY = 1
+    TEST = 2
+    TRAIN = 3
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):

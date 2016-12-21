@@ -1,6 +1,7 @@
 import abc
 import collections
 import os
+import pelops.utils as utils
 
 # ================================================================================
 #  Chip Factory
@@ -9,10 +10,10 @@ import os
 
 class DatasetFactory(object):
     @staticmethod
-    def create_dataset(dataset_type, dataset_path):
+    def create_dataset(dataset_type, dataset_path, set_type=utils.SetType.ALL):
         for cls in ChipDataset.__subclasses__():
             if cls.check_dataset_type(dataset_type):
-                return cls(dataset_path)
+                return cls(dataset_path, set_type)
 
 # ================================================================================
 #  Chip Dataset
@@ -20,8 +21,9 @@ class DatasetFactory(object):
 
 
 class ChipDataset(metaclass = abc.ABCMeta):
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, set_type=utils.SetType.ALL):
         self.dataset_path = dataset_path
+        self.set_type = set_type
         self.chips = dict()
 
     @classmethod

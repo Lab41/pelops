@@ -50,6 +50,7 @@ Usage:
 Arguments:
     VERI                            : Path to the VeRi dataset unzipped
     FEATURE                         : Path to the feature json file
+                                      Make sure that feature is the same type as SET_TYPE
 
 Options:
     -h, --help                      : Show this help message.
@@ -57,8 +58,10 @@ Options:
     -c, --cmc                       : Run CMC (Cummulative Matching Curve) metric
     -s, --str                       : Run STR (N^2) metric
     -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
-    -w, --dataset_type=<DATASET_TYPE>       : Specify the datasets to use. 
+    -w, --dtype=<DATASET_TYPE>      : Specify the datasets to use. 
                                       ["CompcarsDataset", "StrDataset", "VeriDataset"]
+    -y, --stype=<SET_TYPE>          : Determine which type of images and features to use.
+                                      0: all, 1: query, 2: test, 3: train 
     -e, --seed=<SEED>               : Seed to be used for random number generator (default: random [1-100])
 
 """
@@ -81,14 +84,15 @@ class MetricRunner(object):
     CMC = 0
     STR = 1
 
-    def __init__(self, dataset_path, feature_path, seed, dataset_type, num_run):
+    def __init__(self, dataset_path, feature_path, seed, dataset_type, num_run, set_type):
         # mandatory
         self.dataset_path = dataset_path
         self.feature_path = feature_path
         self.num_run = num_run
+        self.set_type = set_type
+        self.dataset_type = dataset_type
         # optional but initialized
         self.seed = seed
-        self.dataset_type = dataset_type
         # logging
         log_file = "metric.log"
         utils.remove_file(log_file)
@@ -108,7 +112,7 @@ class MetricRunner(object):
         logging.info("Instantiate ExperimentGenerator")
         logging.info("num_cams = {}, num_cars_per_cam = {}, drop_percentage = {}".format(num_cams, num_cars_per_cam, drop_percentage))
         logging.info("-" * 80)
-        exp = ExperimentGenerator(self.dataset_path, self.dataset_type, num_cams, num_cars_per_cam, drop_percentage, self.seed)
+        exp = ExperimentGenerator(self.dataset_path, self.dataset_type, num_cams, num_cars_per_cam, drop_percentage, self.seed, self.set_type)
         # run the metric
         self.__run(exp, MetricRunner.STR)
         logging.info("=" * 80)
@@ -128,7 +132,7 @@ class MetricRunner(object):
         logging.info("Instantiate ExperimentGenerator")
         logging.info("num_cams = {}, num_cars_per_cam = {}, drop_percentage = {}".format(num_cams, num_cars_per_cam, drop_percentage))
         logging.info("-" * 80)
-        exp = ExperimentGenerator(self.dataset_path, self.dataset_type, num_cams, num_cars_per_cam, drop_percentage, self.seed)
+        exp = ExperimentGenerator(self.dataset_path, self.dataset_type, num_cams, num_cars_per_cam, drop_percentage, self.seed, self.set_type)
         # run the metric
         self.__run(exp, MetricRunner.CMC)
         logging.info("=" * 80)
@@ -262,6 +266,7 @@ def main(args):
     is_str = args.str
     num_run = args.num_run
     dataset_type  = args.dataset_type
+    set_type = args.set_type
     seed = args.seed
 
     # check that input_path points to a directory
@@ -273,7 +278,7 @@ def main(args):
         sys.exit("ERROR: you need to specify which metric to run")
 
     # create the metric runner
-    runner = MetricRunner(dataset_path, feature_path, seed, dataset_type, num_run)
+    runner = MetricRunner(dataset_path, feature_path, seed, dataset_type, num_run, set_type)
 
     # run the experiment
     if is_cmc:
@@ -302,6 +307,8 @@ if __name__ == '__main__':
                         help="Run STR metric.")
     parser.add_argument("-r", dest="num_run", action="store", type=int,
                         help="NUM_RUN defines how many iterations to run the metric.")
+    parser.add_argument("-y", dest="set_type", action="store", choices=[0, 1, 2, 3], type=int,
+                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
     parser.add_argument("-e", dest="seed", action="store", type=int,
                         default=random.randint(1, 100),
                         help="(OPTIONAL) SEED is used for random number generator.")    

@@ -54,7 +54,9 @@ Options:
     -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
     -e, --seed=<SEED>               : Seed to be used for random number generator.
-    -w, --type=<DATASET_TYPE>       : Specify the datasets to use. 
+    -y, --stype=<TYPE>              : Determine which type of images to use.
+                                      0: all, 1: query, 2: test, 3: train
+    -w, --dtype=<DATASET_TYPE>      : Specify the datasets to use. 
                                       ["CompcarsDataset", "StrDataset", "VeriDataset"]
 
 """
@@ -73,9 +75,9 @@ import pelops.utils as utils
 
 class ExperimentGenerator(object):
 
-    def __init__(self, dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed):
+    def __init__(self, dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, set_type):
         # set inputs
-        self.dataset = chip.DatasetFactory.create_dataset(dataset_type, dataset_path)
+        self.dataset = chip.DatasetFactory.create_dataset(dataset_type, dataset_path, set_type)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
@@ -168,7 +170,7 @@ def main(args):
     num_cams = args.num_cams
     num_cars_per_cam = args.num_cars_per_cam
     drop_percentage = args.drop_percentage
-    typ = args.type
+    set_type = args.set_type
     seed = args.seed
 
     # check that input_path points to a directory
@@ -178,7 +180,7 @@ def main(args):
 
     # create the generator
     exp = ExperimentGenerator(
-        dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed)
+        dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, set_type)
 
     # generate the experiment
     set_num = 1
@@ -193,7 +195,7 @@ def main(args):
             print("camera id: {}".format(image.cam_id))
             print("timestamp: {}".format(utils.get_timestamp(image.time)))
             if image.misc is not None:
-                for key, value in image.misc.iteritems():
+                for key, value in image.misc.items():
                     print("{}: {}".format(key, value))
             print("-" * 80)
         print("=" * 80)
@@ -221,6 +223,8 @@ if __name__ == '__main__':
                         help="Each set has a list of car images. The cars in a set are distinct.\nNUM_CARS_PER_CAM specifies the number of car images in each camera set.")
     parser.add_argument("-d", dest="drop_percentage", action="store", type=float,
                         help="DROP_PERCENTAGE specifies the likelihood that\nthe target car image is dropped (float from [0,1]).")
+    parser.add_argument("-y", dest="set_type", action="store", choices=[0, 1, 2, 3], type=int,
+                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
     parser.add_argument("-e", dest="seed", action="store", type=int,
                         default=random.randint(1, 100),
                         help="(OPTIONAL) SEED is used for random number generator.")
