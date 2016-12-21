@@ -81,7 +81,7 @@ def get_timestamp(timestamp):
     Returns: 
         string in the format of Year-Month-Date Hour:Minute:Second
     """
-    return timestamp.strftime("%Y-%m-%d %H:%M:%S") if type(timestamp) is datetime else timestamp
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S") if isinstance(type(timestamp), datetime.datetime) else timestamp
 
 
 def should_drop(drop_percentage):
