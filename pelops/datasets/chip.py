@@ -37,7 +37,7 @@ class ChipDataset(metaclass = abc.ABCMeta):
         return [chip for chip in self.chips.values() if chip.cam_id == cam_id]
 
     def get_distinct_cams_by_car_id(self, car_id):
-        return get_distinct_cams_per_car()[car_id]
+        return self.get_distinct_cams_per_car()[car_id]
 
     def get_distinct_cams_per_car(self):
         list_of_cameras_per_car = collections.defaultdict(set)
