@@ -44,6 +44,16 @@ def get_index_of_pairs(list_of_tuple, index_of_tuple_1, index_of_tuple_2, value)
     return len(list_of_tuple)
 
 
+def get_basename(string):
+    """ Extract the basename from the filepath.
+    Args:
+        filepath in the format of a string
+    Args:
+        filename in the format of a string
+    """
+    return os.path.basename(os.path.normpath(string))
+
+
 def get_numeric(string):
     """ Extract the numeric value in a string.
     Args:

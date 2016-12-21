@@ -3,14 +3,6 @@ import datetime as dt
 import pelops.experiment_api.utils as utils
 
 
-def test_ImageType():
-    vals = utils.ImageType.__members__
-    assert 'ALL' in vals
-    assert 'QUERY' in vals
-    assert 'TEST' in vals
-    assert 'TRAIN' in vals
-
-
 def test_get_index_of_tuple():
     TEST_LIST = [
         (0, 'Who', 'John'),

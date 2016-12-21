@@ -3,11 +3,13 @@
 This script will build a list of sets (of images) for the experiment.
 
 Input:
-    We use VeRi dataset that contains the following information:
-    * 49358 images (1679 query images, 11580 test images, 37779 train images)
-    * 776 vehicles
-    * 20 cameras
-    * covering 1.0 km^2 area in 24 hours
+    We use the following datasets: CompCars, GD (from Google), STR, and VeRi.
+
+    VeRi dataset contains:
+        * 49358 images (1679 query images, 11580 test images, 37779 train images)
+        * 776 vehicles
+        * 20 cameras
+        * covering 1.0 km^2 area in 24 hours
 
     Liu, X., Liu, W., Ma, H., Fu, H.: Large-scale vehicle re-identification in urban surveillance videos.
     In: IEEE International Conference on Multimedia and Expo. (2016) accepted.
@@ -51,9 +53,9 @@ Options:
     -s, --cams=<NUM_CAMS>           : Each camera maps to a set. NUM_CAMS specify the number of camera sets to be outputted.
     -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
     -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
-    -y, --type=<TYPE>               : Determine which type of images to use.
-                                      0: all, 1: query, 2: test, 3: train
     -e, --seed=<SEED>               : Seed to be used for random number generator.
+    -w, --type=<DATASET_TYPE>       : Specify the datasets to use. 
+                                      ["CompcarsDataset", "StrDataset", "VeriDataset"]
 
 """
 import argparse
@@ -71,13 +73,12 @@ import pelops.utils as utils
 
 class ExperimentGenerator(object):
 
-    def __init__(self, dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, typ):
+    def __init__(self, dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed):
         # set inputs
         self.dataset = chip.DatasetFactory.create_dataset(dataset_type, dataset_path)
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
-        self.typ = typ
         self.seed = seed
         # stuff that needs to be initialized
         random.seed(self.seed)
@@ -177,14 +178,14 @@ def main(args):
 
     # create the generator
     exp = ExperimentGenerator(
-        dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, typ)
+        dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed)
 
     # generate the experiment
     set_num = 1
     print("=" * 80)
     for camset in exp.generate():
         print("Set #{}".format(set_num))
-        print("Target car: {}".format(os.path.basename(os.path.normpath(exp.target_car.filepath))))
+        print("Target car: {}".format(utils.get_basename(exp.target_car.filepath)))
         print("-" * 80)
         for image in camset:
             print("filepath: {}".format(image.filepath))
@@ -220,8 +221,6 @@ if __name__ == '__main__':
                         help="Each set has a list of car images. The cars in a set are distinct.\nNUM_CARS_PER_CAM specifies the number of car images in each camera set.")
     parser.add_argument("-d", dest="drop_percentage", action="store", type=float,
                         help="DROP_PERCENTAGE specifies the likelihood that\nthe target car image is dropped (float from [0,1]).")
-    parser.add_argument("-y", dest="type", action="store", type=int,
-                        help="TYPE determines which type of images to use.\n0: all, 1: query, 2: test, 3: train")
     parser.add_argument("-e", dest="seed", action="store", type=int,
                         default=random.randint(1, 100),
                         help="(OPTIONAL) SEED is used for random number generator.")
