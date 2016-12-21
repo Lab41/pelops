@@ -1,40 +1,10 @@
 import cProfile
 import datetime
-import enum
 import json
 import os
 import random
 import re
 import time
-
-
-class Veri(object):
-    """ Structure of the Veri dataset unzipped and miscellaneous information
-    """
-    name_query_filepath = "name_query.txt"
-    name_test_filepath = "name_test.txt"
-    name_train_filepath = "name_train.txt"
-    image_query_filepath = "image_query"
-    image_test_filepath = "image_test"
-    image_train_filepath = "image_train"
-    ground_truth_filepath = "gt_image.txt"
-    junk_images_filepath = "jk_image.txt"
-    train_label_filepath = "train_label.xml"
-    num_cars = 776
-    num_cams = 20
-    num_query_images = 1679
-    num_test_images = 11580
-    num_train_images = 37779
-    total_images = 49358
-
-
-class ImageType(enum.Enum):
-    """ Types of images
-    """
-    ALL = 0
-    QUERY = 1
-    TEST = 2
-    TRAIN = 3
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
@@ -84,6 +54,17 @@ def get_numeric(string):
     return re.sub('[^0-9]', '', string)
 
 
+def get_timestamp(timestamp):
+    """ Convert datetime object into a string in the format of
+    Year-Month-Date Hour:Minute:Second
+    Args: 
+        datetime 
+    Returns: 
+        string in the format of Year-Month-Date Hour:Minute:Second
+    """
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def should_drop(drop_percentage):
     """ Based on the given percentage, provide an answer
     whether or not to drop the image.
@@ -93,42 +74,6 @@ def should_drop(drop_percentage):
         a boolean whether to drop or not drop the image
     """
     return random.random() < drop_percentage
-
-
-def read_camera_id(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the camera_id in name and convert it into an int.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        an int value of camera_id
-    """
-    splitter = name.split("_")
-    return int(get_numeric(splitter[1]))
-
-
-def read_car_id(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the car_id in name and convert it into an int.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        an int value of car_id
-    """
-    splitter = name.split("_")
-    return int(splitter[0])
-
-
-def read_timestamp(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the timestamp in name and convert it into a datetime object.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        a datetime object of timestamp
-    """
-    splitter = name.split("_")
-    return datetime.datetime.fromtimestamp(int(splitter[2]))
 
 
 def read_json(filepath):

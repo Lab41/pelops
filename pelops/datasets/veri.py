@@ -61,12 +61,14 @@ class VeriDataset(chip.ChipDataset):
                 img_dir = self.__filepaths.dir_test
             else: # VeriDataset.filepaths.name_train in filepath
                 img_dir = self.__filepaths.dir_train
-            current_chip = self.__create_chip(img_dir, name.strip()) for name in open(name_filepath)
-            self.chips[current_chip.filepath] = current_chip
+            for name in open(name_filepath):
+                current_chip = self.__create_chip(img_dir, name.strip())
+                self.chips[current_chip.filepath] = current_chip
 
     def __create_chip(self, img_dir, img_name):
         # information about the chip resides in the chip's name
         splitter = img_name.split("_")
+        misc = dict()
 
         filepath = img_dir + "/" + img_name
         car_id = int(splitter[0])
@@ -74,5 +76,4 @@ class VeriDataset(chip.ChipDataset):
         time = datetime.datetime.fromtimestamp(int(splitter[2]))
         misc["binary"] = int(os.path.splitext(splitter[3])[0])
 
-        chip = chip.Chip(filepath, car_id, cam_id, time, misc)
-        return chip
+        return chip.Chip(filepath, car_id, cam_id, time, misc)
