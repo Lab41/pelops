@@ -7,41 +7,44 @@ import pelops.datasets.chip as chip
 
 
 class CompCarDataset(chip.ChipDataset):
+    filenames = collections.namedtuple(
+        "filenames",
+        [
+            "image_dir",
+            "name_train",
+            "name_text",
+            "model_mat",
+            "color_mat",
+        ]
+    )
+    filepaths = filenames (
+        "image",
+        "train_surveillance.txt",
+        "test_surveillance.txt",
+        "sv_make_model_name.mat",
+        "color_list.mat",
+    )
 
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, set_type=utiles.SetType.ALL.value):
         super().__init__(dataset_path)
-        # define paths to files and directories
-        self.filenames = collections.namedtuple(
-            "filenames",
-            [
-                "image_dir",
-                "train_txt",
-                "test_txt",
-                "make_model_mat",
-                "color_mat",
-            ]
-        )
-        self.filepaths = filenames(
-            "iamge",
-            "train_surveillance.txt",
-            "test_surveillance.txt",
-            "sv_make_model_name.mat",
-            "color_list.mat",
-        )
-        self.__set_filepaths()
-        self.__extract_color_labels()
+        self.__set_filepaths()         # set self.__filepaths
+        self.__extract_color_labels()  # set self.__color_map
+        self.__extract_model_labels()  # set self.__model_map
         self.__set_chips()
 
     def __set_filepaths(self):
         self.__filepaths = self.filenames(
-            self.dataset_path + "/" + self.filepaths.image_dir,
-            self.dataset_path + "/" + self.filepaths.train_txt,
-            self.dataset_path + "/" + self.filepaths.test_txt,
-            self.dataset_path + "/" + self.filepaths.make_model_mat,
-            self.dataset_path + "/" + self.filepaths.color_mat,
+            self.dataset_path + "/" + CompCarDataset.filepaths.image_dir,
+            self.dataset_path + "/" + CompCarDataset.filepaths.name_train,
+            self.dataset_path + "/" + CompCarDataset.filepaths.name_text,
+            self.dataset_path + "/" + CompCarDataset.filepaths.model_mat,
+            self.dataset_path + "/" + CompCarDataset.filepaths.color_mat,
         )
 
     def __extract_color_labels(self):
+        self.__color_map = {}
+
+        # Map color_id to its respective name
         color_map = {
             -1: None,
             0: "black",
@@ -57,42 +60,57 @@ class CompCarDataset(chip.ChipDataset):
         }
 
         # Load the matrix of colors
-        self.__car_color_map = {}
         color_matrix = scipy.io.loadmat(
             self.__filepaths.color_mat)["color_list"]
 
         # File is an length 1 array, color_num is a 1x1 matrix
         for file_array, color_num_matrix in color_matrix:
-            file = file_array[0]
+            filepath = file_array[0]
             color_num = color_num_matrix[0][0]
-            self.__car_color_map[file] = color_map[color_num]
+            self.__color_map[filepath] = color_map[color_num]
+
+    def __extract_model_labels(self):
+        self.__model_map = {}
+
+        model_matrix = scipy.io.loadmat(self.__filepaths.make_model_mat)["sv_make_model_name"]
+        for car_id, make_matrix in enumerate(make_matrix):
+            # make contains only the make of the car and occasionally contains whitespaces after
+            make = make_matrix[0][0].strip()
+            # model sometimes contains both make and model, so ensure that model only contains model
+            make_and_model = make_matrix[1][0]
+            model = make_and_model.replace(make, "").strip()
+            # model_id contains the model id used in the web
+            model_id = int(make_matrix[2][0][0])
+            # correct instance when make is mispelled
+            if make == "BWM":
+                make = "BMW"
+            self.__model_map[car_id] = [make, model, model_id]
 
     def __set_chips(self):
-        directory = self.__filepaths.image_dir
-        for file in os.listdir(directory):
-            path = directory + '/' + file
+        # identify all the chips, default query to all
+        all_names_filepaths = {
+            utils.SetType.ALL.value: [self.__filepaths.name_test, self.__filepaths.name_train], 
+            utils.SetType.TEST.value: [self.__filepaths.name_test]
+            utils.SetType.TRAIN.value: [self.__filepaths.name_train]
+        }.get(self.set_type, [self.__filepaths.name_test, self.__filepaths.nmae_train])
+        # create chip objects based on the names listed in the files
+        for name_filepath in all_names_filepaths:
+            for name in open(name_filepath):
+                current_chip = self.__create_chip(self.__filepaths.image_dir, name.strip())
+                self.chips[current_chip.filepath] = current_chip
 
-            # Only interested in certain files
-            is_valid = os.path.isfile(path)
-            is_png = path.endswith(".png")
-            is_mask = "mask" in path
-            if not is_valid or not is_png or is_mask:
-                continue
+    def __create_chip(self, img_dir, img_name):
+        splitter = img_name.split("/")
+        misc = dict()
 
-            # Set all Chip variables
-            car_id = get_sa_car_id(path)
-            cam_id = get_sa_cam_id(path)
+        filepath = img_dir + "/" + img_name
+        car_id = int(splitter[0])
+        cam_id = None
+        time = None        
+        misc["color"] = self.__color_map[filepath]
+        make, model, model_id = self.__model_map[car_id]
+        misc["make"] = make
+        misc["model"] = model
+        misc["model_id"] = model_id
 
-            time = cam_id  # Cars always pass the first camera first
-            misc = None    # No miscellaneous data
-
-            # Make chip
-            current_chip = chip.Chip(
-                path,
-                car_id,
-                cam_id,
-                time,
-                misc
-            )
-
-            self.chips[path] = current_chip
+        return chip.Chip(filepath, car_id, cam_id, time, misc)
