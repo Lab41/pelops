@@ -18,6 +18,8 @@ class VeriDataset(chip.ChipDataset):
         "dir_query",
         "dir_test",
         "dir_train",
+        "list_color",
+        "list_type",
         "ground_truths",
         "junk_images",
         "label_train"])
@@ -28,11 +30,13 @@ class VeriDataset(chip.ChipDataset):
         "image_query",
         "image_test",
         "image_train",
+        "list_color.txt", 
+        "list_type.txt",
         "gt_image.txt",
         "jk_image.txt",
         "train_label.txt")
 
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL):
+    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()
         self.__set_chips()
@@ -45,6 +49,8 @@ class VeriDataset(chip.ChipDataset):
             self.dataset_path + "/" + VeriDataset.filepaths.dir_query,
             self.dataset_path + "/" + VeriDataset.filepaths.dir_test, 
             self.dataset_path + "/" + VeriDataset.filepaths.dir_train,
+            self.dataset_path + "/" + VeriDataset.filepaths.list_color, 
+            self.dataset_path + "/" + VeriDataset.filepaths.list_type,
             self.dataset_path + "/" + VeriDataset.filepaths.ground_truths,
             self.dataset_path + "/" + VeriDataset.filepaths.junk_images, 
             self.dataset_path + "/" + VeriDataset.filepaths.label_train)
@@ -58,6 +64,7 @@ class VeriDataset(chip.ChipDataset):
             utils.SetType.TEST.value: [self.__filepaths.name_test],
             utils.SetType.TRAIN.value: [self.__filepaths.name_train],
         }.get(self.set_type)
+        print("all_names_filepaths: {}".format(all_names_filepaths))
         # create chip objects based on the names listed in the files
         for name_filepath in all_names_filepaths:
             if VeriDataset.filepaths.name_query in name_filepath:

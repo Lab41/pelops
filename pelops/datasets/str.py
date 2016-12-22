@@ -17,7 +17,7 @@ class StrDataset(chip.ChipDataset):
     filepaths = filenames (
         "crossCameraMatches")
 
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL):
+    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()
         self.__set_chips()
