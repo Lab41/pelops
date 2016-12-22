@@ -11,18 +11,22 @@ import pelops.utils as utils
 
 
 class VeriDataset(chip.ChipDataset):
-    filenames = collections.namedtuple("filenames", [
-        "name_query",
-        "name_test",
-        "name_train",
-        "dir_query",
-        "dir_test",
-        "dir_train",
-        "list_color",
-        "list_type",
-        "ground_truths",
-        "junk_images",
-        "label_train"])
+    filenames = collections.namedtuple(
+        "filenames", 
+        [
+            "name_query",
+            "name_test",
+            "name_train",
+            "dir_query",
+            "dir_test",
+            "dir_train",
+            "list_color",
+            "list_type",
+            "ground_truths",
+            "junk_images",
+            "label_train"
+        ]
+    )
     filepaths = filenames(
         "name_query.txt",
         "name_test.txt",
@@ -34,11 +38,12 @@ class VeriDataset(chip.ChipDataset):
         "list_type.txt",
         "gt_image.txt",
         "jk_image.txt",
-        "train_label.txt")
+        "train_label.txt"
+    )
 
     def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
         super().__init__(dataset_path, set_type)
-        self.__set_filepaths()
+        self.__set_filepaths()  # set self.__filepaths
         self.__set_chips()
 
     def __set_filepaths(self):
@@ -64,7 +69,6 @@ class VeriDataset(chip.ChipDataset):
             utils.SetType.TEST.value: [self.__filepaths.name_test],
             utils.SetType.TRAIN.value: [self.__filepaths.name_train],
         }.get(self.set_type)
-        print("all_names_filepaths: {}".format(all_names_filepaths))
         # create chip objects based on the names listed in the files
         for name_filepath in all_names_filepaths:
             if VeriDataset.filepaths.name_query in name_filepath:
