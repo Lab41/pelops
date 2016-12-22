@@ -45,24 +45,24 @@ Metric:
 
 Usage:
     metric.py [-hv]
-    metric.py [-e <SEED> -c -s] -w <DATASET_TYPE> -r <NUM_RUN> <VERI> <FEATURE>
+    metric.py [-e <SEED> -c -s] -w <DATASET_TYPE> -y <SET_TYPE> -r <NUM_RUN> <DATASET_PATH> <FEATURE>
 
 Arguments:
-    VERI                            : Path to the VeRi dataset unzipped
+    DATASET_PATH                    : Path to the dataset unzipped
     FEATURE                         : Path to the feature json file
                                       Make sure that feature is the same type as SET_TYPE
 
 Options:
     -h, --help                      : Show this help message.
     -v, --version                   : Show the version number.
-    -c, --cmc                       : Run CMC (Cummulative Matching Curve) metric
-    -s, --str                       : Run STR (N^2) metric
-    -r, --num_run=<NUM_RUN>         : How many iterations to run the ranking
-    -w, --dtype=<DATASET_TYPE>      : Specify the datasets to use. 
+    -c, --cmc                       : Run CMC (Cummulative Matching Curve) metric.
+    -s, --str                       : Run STR (N^2) metric.
+    -r NUM_RUN                      : How many iterations to run the ranking.
+    -w DATASET_TYPE                 : Specify the datasets to use. 
                                       ["CompcarsDataset", "StrDataset", "VeriDataset"]
-    -y, --stype=<SET_TYPE>          : Determine which type of images and features to use.
+    -y SET_TYPE                     : Determine which type of images and features to use.
                                       0: all, 1: query, 2: test, 3: train 
-    -e, --seed=<SEED>               : Seed to be used for random number generator (default: random [1-100])
+    -e SEED                         : Seed to be used for random number generator. (default: random [1-100])
 
 """
 
@@ -300,7 +300,8 @@ if __name__ == '__main__':
                         help="Path to the feature json file.\nMake sure that feature is the same type as TYPE.")
     # options
     parser.add_argument("-v", "--version", action="version", version="Metric Runner 1.0")
-    parser.add_argument("-w", dest="dataset_type", choices=["CompcarsDataset", "StrDataset", "VeriDataset"])
+    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarsDataset", "StrDataset", "VeriDataset"], type=str,
+                        help="Specify the datasets to use.")
     parser.add_argument("-c", "--cmc", dest="cmc", action="store_true", default=False, 
                         help="Run CMC metric.")
     parser.add_argument("-s", "--str", dest="str", action="store_true", default=False,

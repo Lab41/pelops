@@ -42,21 +42,21 @@ Example:
 
 Usage:
     experiment.py [-hv]
-    experiment.py [-e <SEED>] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -y <TYPE> <VERI>
+    experiment.py [-e <SEED>] -s <NUM_CAMS> -c <NUM_CARS_PER_CAM> -d <DROP_PERCENTAGE> -w <DATASET_TYPE> -y <SET_TYPE> <DATASET_PATH>
 
 Arguments:
-    VERI                            : Path to the VeRi dataset unzipped
+    DATASET_PATH                    : Path to the dataset unzipped
 
 Options:
     -h, --help                      : Show this help message.
     -v, --version                   : Show the version number.
-    -s, --cams=<NUM_CAMS>           : Each camera maps to a set. NUM_CAMS specify the number of camera sets to be outputted.
-    -c, --cars=<NUM_CARS_PER_CAM>   : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
-    -d, --drop=<DROP_PERCENTAGE>    : The likelihood that the target car image is dropped (float from [0,1])
-    -e, --seed=<SEED>               : Seed to be used for random number generator.
-    -y, --stype=<TYPE>              : Determine which type of images to use.
+    -s NUM_CAMS                     : Each camera maps to a set. NUM_CAMS specify the number of camera sets to be outputted.
+    -c NUM_CARS_PER_CAM             : Each set has a list of images. NUM_CARS_PER_CAM specify the number of car images in each camera set.
+    -d DROP_PERCENTAGE              : The likelihood that the target car image is dropped (float from [0,1])
+    -e SEED                         : Seed to be used for random number generator.
+    -y SET_TYPE                     : Determine which type of images to use.
                                       0: all, 1: query, 2: test, 3: train
-    -w, --dtype=<DATASET_TYPE>      : Specify the datasets to use. 
+    -w DATASET_TYPE                 : Specify the datasets to use. 
                                       ["CompcarsDataset", "StrDataset", "VeriDataset"]
 
 """
@@ -216,7 +216,8 @@ if __name__ == '__main__':
     # options
     parser.add_argument("-v", "--version", action="version",
                         version="Experiment Generator 1.0")
-    parser.add_argument("-w", dest="dataset_type", choices=["CompcarsDataset", "StrDataset", "VeriDataset"])
+    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarsDataset", "StrDataset", "VeriDataset"], type=str,
+                        help="Specify the datasets to use.")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
     parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
