@@ -49,6 +49,7 @@ def test_get_index_of_pairs():
     assert len(TEST_LIST) == utils.get_index_of_pairs(
         TEST_LIST, 0, 1, 'NOT THERE')
 
+
 def test_get_basename():
     TEST_FILEPATHS = (
         ("/path/to/file/hello.py", "hello.py"),

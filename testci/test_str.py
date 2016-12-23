@@ -13,9 +13,9 @@ def str_sa(tmpdir):
     # Write a file to read back
     FILE_NAMES = (
         # filepath, car_id, cam_id, time, misc
-        ("match00001_cam02.png", 1, 2, 2, None),
+        ("match00001_cam02.png", 1, 2, None, None),
         ("match00001_cam01_mask.png", None, None, None, None),
-        ("match00010_cam01.png", 10, 1, 1, None),
+        ("match00010_cam01.png", 10, 1, None, None),
         ("match00011_cam02_mask.png", None, None, None, None)
     )
     # The contents of the files do not matter, the name is enough
@@ -29,9 +29,9 @@ def str_sa(tmpdir):
 
     # Rename filepath
     FILE_NAMES = (
-        (out_file.dirname + "/" + "match00001_cam02.png", 1, 2, 2, None),
+        (out_file.dirname + "/" + "match00001_cam02.png", 1, 2, None, None),
         (out_file.dirname + "/" + "match00001_cam01_mask.png", None, None, None, None),
-        (out_file.dirname + "/" + "match00010_cam01.png", 10, 1, 1, None),
+        (out_file.dirname + "/" + "match00010_cam01.png", 10, 1, None, None),
         (out_file.dirname + "/" + "match00011_cam02_mask.png", None, None, None, None)
     )
 
@@ -60,8 +60,8 @@ def test_str_sa_chips_vals(str_sa):
         chip = instantiated_class.chips[filepath]
         assert car_id == chip.car_id
         assert cam_id == chip.cam_id
-        # The time is just the camera id for the STR SA data
-        assert cam_id == chip.time
+        # No time data
+        assert chip.time is None
         # No misc data
         assert chip.misc is None
         # Filepath should be filled

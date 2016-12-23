@@ -12,14 +12,19 @@ import pelops.utils as utils
 
 class StrDataset(chip.ChipDataset):
     # define paths to files and directories
-    filenames = collections.namedtuple("filenames", [
-        "dir_all"])
+    filenames = collections.namedtuple(
+        "filenames", 
+        [
+            "dir_all"
+        ]
+    )
     filepaths = filenames (
-        "crossCameraMatches")
+        "crossCameraMatches"
+    )
 
     def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
         super().__init__(dataset_path, set_type)
-        self.__set_filepaths()
+        self.__set_filepaths()  # set self.__filepaths
         self.__set_chips()
         # STR does not differentiate the set type
 
@@ -43,8 +48,8 @@ class StrDataset(chip.ChipDataset):
             car_id = get_sa_car_id(path)
             cam_id = get_sa_cam_id(path)
 
-            time = cam_id  # Cars always pass the first camera first
-            misc = None    # No miscellaneous data
+            time = None    # No timestamp information
+            misc = None    # No miscellaneous information
 
             # Make chip
             current_chip = chip.Chip(
