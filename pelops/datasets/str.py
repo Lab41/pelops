@@ -3,6 +3,7 @@ import collections
 import os
 
 import pelops.datasets.chip as chip
+import pelops.utils as utils
 
 # ================================================================================
 #  STR_SA Dataset
@@ -16,10 +17,11 @@ class StrDataset(chip.ChipDataset):
     filepaths = filenames (
         "crossCameraMatches")
 
-    def __init__(self, dataset_path):
-        super().__init__(dataset_path)
+    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+        super().__init__(dataset_path, set_type)
         self.__set_filepaths()
         self.__set_chips()
+        # STR does not differentiate the set type
 
     def __set_filepaths(self):
         self.__filepaths = StrDataset.filenames(

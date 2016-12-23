@@ -7,29 +7,8 @@ import random
 import re
 import time
 
-
-class Veri(object):
-    """ Structure of the Veri dataset unzipped and miscellaneous information
-    """
-    name_query_filepath = "name_query.txt"
-    name_test_filepath = "name_test.txt"
-    name_train_filepath = "name_train.txt"
-    image_query_filepath = "image_query"
-    image_test_filepath = "image_test"
-    image_train_filepath = "image_train"
-    ground_truth_filepath = "gt_image.txt"
-    junk_images_filepath = "jk_image.txt"
-    train_label_filepath = "train_label.xml"
-    num_cars = 776
-    num_cams = 20
-    num_query_images = 1679
-    num_test_images = 11580
-    num_train_images = 37779
-    total_images = 49358
-
-
-class ImageType(enum.Enum):
-    """ Types of images
+class SetType(enum.Enum):
+    """ Types of set, i.e. training set
     """
     ALL = 0
     QUERY = 1
@@ -74,6 +53,16 @@ def get_index_of_pairs(list_of_tuple, index_of_tuple_1, index_of_tuple_2, value)
     return len(list_of_tuple)
 
 
+def get_basename(string):
+    """ Extract the basename from the filepath.
+    Args:
+        filepath in the format of a string
+    Args:
+        filename in the format of a string
+    """
+    return os.path.basename(os.path.normpath(string))
+
+
 def get_numeric(string):
     """ Extract the numeric value in a string.
     Args:
@@ -82,6 +71,17 @@ def get_numeric(string):
         a string with only the numeric value extracted
     """
     return re.sub('[^0-9]', '', string)
+
+
+def get_timestamp(timestamp):
+    """ Convert datetime object into a string in the format of
+    Year-Month-Date Hour:Minute:Second
+    Args: 
+        datetime 
+    Returns: 
+        string in the format of Year-Month-Date Hour:Minute:Second
+    """
+    return timestamp.strftime("%Y-%m-%d %H:%M:%S") if isinstance(type(timestamp), datetime.datetime) else timestamp
 
 
 def should_drop(drop_percentage):
@@ -93,42 +93,6 @@ def should_drop(drop_percentage):
         a boolean whether to drop or not drop the image
     """
     return random.random() < drop_percentage
-
-
-def read_camera_id(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the camera_id in name and convert it into an int.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        an int value of camera_id
-    """
-    splitter = name.split("_")
-    return int(get_numeric(splitter[1]))
-
-
-def read_car_id(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the car_id in name and convert it into an int.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        an int value of car_id
-    """
-    splitter = name.split("_")
-    return int(splitter[0])
-
-
-def read_timestamp(name):
-    """ Assuming that name is a string in the format of 0002_c002_00030670_0.jpg,
-    find the timestamp in name and convert it into a datetime object.
-    Args:
-        name: string in the format of 0002_c002_00030670_0.jpg
-    Returns:
-        a datetime object of timestamp
-    """
-    splitter = name.split("_")
-    return datetime.datetime.fromtimestamp(int(splitter[2]))
 
 
 def read_json(filepath):

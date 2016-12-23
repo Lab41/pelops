@@ -110,8 +110,31 @@ def test_get_all_chips_by_cam_id(str_sa):
         assert chips == test_chips
 
 
+def test_get_distinct_cams_by_car_id(str_sa):
+    """ Test StrDataset.get_distinct_cams_by_car_id() and get_distinct_cams_per_car """
+    instantiated_class = str_sa[0]
+    CAR_ID = 1
+    TEST_CAMS = [2]
+    for test_cam, cam in zip(TEST_CAMS, sorted(instantiated_class.get_distinct_cams_by_car_id(CAR_ID))):
+        assert test_cam == cam
+
+def test_get_all_cam_ids(str_sa):    
+    """ Test StrDataset.get_distinct_cams_by_car_id() """
+    instantiated_class = str_sa[0]
+    TEST_CAMS = [1, 2]
+    for test_cam, cam in zip(TEST_CAMS, sorted(instantiated_class.get_all_cam_ids())):
+        assert test_cam == cam
+
+def test_get_all_car_ids(str_sa):
+    """ Test StrDataset.get_distinct_cams_by_car_id() """
+    instantiated_class = str_sa[0]
+    TEST_CARS = [1, 10]
+    for test_car, car in zip (TEST_CARS, sorted(instantiated_class.get_all_car_ids())):
+        assert test_car == car
+
+
 def test_str_sa_iter(str_sa):
-    """ Test StrDataset.get_chip_image_path() """
+    """ Test StrDataset.__iter__() """
     instantiated_class = str_sa[0]
     FILE_NAMES = str_sa[1]
     chip_ids = tuple(i for i, _, _, _, _ in FILE_NAMES)

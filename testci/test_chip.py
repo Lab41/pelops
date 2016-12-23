@@ -10,9 +10,9 @@ def chips():
         ("car1_cam1.png", 1, 1, 100, None),
         ("car1_cam2.png", 1, 2, 105, None),
         ("car1_cam3.png", 1, 3, 110, None),
-        ("car1_cam1.png", 2, 1, 100, None),
-        ("car1_cam2.png", 2, 1, 102, None),
-        ("car1_cam3.png", 2, 1, 104, None),
+        ("car2_cam1.png", 2, 1, 100, None),
+        ("car2_cam2.png", 2, 1, 102, None),
+        ("car2_cam3.png", 2, 1, 104, None),
     )
 
     chips = {}
@@ -88,6 +88,28 @@ def test_get_all_chips_by_cam_id(chip_dataset, chips):
     CAM_ID_INDEX = 2
     get_all_function_tester(chips, chip_dataset, CAM_ID_INDEX,
                             chip_dataset.get_all_chips_by_cam_id)
+
+
+def test_get_distinct_cams_by_car_id(chip_dataset):
+    """ Test ChipDataset.get_distinct_cams_by_car_id() and get_distinct_cams_per_car() """
+    CAR_ID = 1
+    TEST_CAMS = [1, 2, 3]
+    for test_cam, cam in zip(TEST_CAMS, sorted(chip_dataset.get_distinct_cams_by_car_id(CAR_ID))):
+        assert test_cam == cam
+
+
+def test_get_all_cam_ids(chip_dataset):
+    """ Test ChipDataset.get_all_cam_ids() """
+    TEST_CAMS = [1, 2, 3]
+    for test_cam, cam in zip(TEST_CAMS, sorted(chip_dataset.get_all_cam_ids())):
+        assert test_cam == cam
+
+
+def test_get_all_car_ids(chip_dataset):
+    TEST_CARS = [1, 2]
+    for test_car, car in zip (TEST_CARS, sorted(chip_dataset.get_all_car_ids())):
+        assert test_car == car
+
 
 def test_chipdataset_iter(chip_dataset, chips):
     """ Test iteration over ChipDataset() """
