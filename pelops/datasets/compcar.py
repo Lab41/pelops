@@ -1,18 +1,18 @@
 import collections
 import os
-
 import scipy.io
 
 import pelops.datasets.chip as chip
+import pelops.utils as utils
 
 
-class CompCarDataset(chip.ChipDataset):
+class CompcarDataset(chip.ChipDataset):
     filenames = collections.namedtuple(
         "filenames",
         [
             "image_dir",
             "name_train",
-            "name_text",
+            "name_test",
             "model_mat",
             "color_mat",
         ]
@@ -25,8 +25,8 @@ class CompCarDataset(chip.ChipDataset):
         "color_list.mat",
     )
 
-    def __init__(self, dataset_path, set_type=utiles.SetType.ALL.value):
-        super().__init__(dataset_path)
+    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+        super().__init__(dataset_path, set_type)
         self.__set_filepaths()         # set self.__filepaths
         self.__extract_color_labels()  # set self.__color_map
         self.__extract_model_labels()  # set self.__model_map
@@ -34,11 +34,11 @@ class CompCarDataset(chip.ChipDataset):
 
     def __set_filepaths(self):
         self.__filepaths = self.filenames(
-            self.dataset_path + "/" + CompCarDataset.filepaths.image_dir,
-            self.dataset_path + "/" + CompCarDataset.filepaths.name_train,
-            self.dataset_path + "/" + CompCarDataset.filepaths.name_text,
-            self.dataset_path + "/" + CompCarDataset.filepaths.model_mat,
-            self.dataset_path + "/" + CompCarDataset.filepaths.color_mat,
+            self.dataset_path + "/" + CompcarDataset.filepaths.image_dir,
+            self.dataset_path + "/" + CompcarDataset.filepaths.name_train,
+            self.dataset_path + "/" + CompcarDataset.filepaths.name_test,
+            self.dataset_path + "/" + CompcarDataset.filepaths.model_mat,
+            self.dataset_path + "/" + CompcarDataset.filepaths.color_mat,
         )
 
     def __extract_color_labels(self):
@@ -66,21 +66,27 @@ class CompCarDataset(chip.ChipDataset):
         # File is an length 1 array, color_num is a 1x1 matrix
         for file_array, color_num_matrix in color_matrix:
             filepath = file_array[0]
-            color_num = color_num_matrix[0][0]
+            color_num = int(color_num_matrix[0][0])
             self.__color_map[filepath] = color_map[color_num]
 
     def __extract_model_labels(self):
         self.__model_map = {}
 
-        model_matrix = scipy.io.loadmat(self.__filepaths.make_model_mat)["sv_make_model_name"]
-        for car_id, make_matrix in enumerate(make_matrix):
+        model_matrix = scipy.io.loadmat(
+            self.__filepaths.model_mat)["sv_make_model_name"]
+        for car_id, model_matrix in enumerate(model_matrix):
+            # correct car_id
+            car_id = int(car_id) + 1
             # make contains only the make of the car and occasionally contains whitespaces after
-            make = make_matrix[0][0].strip()
+            make = model_matrix[0][0].strip()
+            # correct instance when make is mispelled that affects the model
+            if make == "Zoyte":
+                make = "Zotye"
             # model sometimes contains both make and model, so ensure that model only contains model
-            make_and_model = make_matrix[1][0]
+            make_and_model = model_matrix[1][0]
             model = make_and_model.replace(make, "").strip()
             # model_id contains the model id used in the web
-            model_id = int(make_matrix[2][0][0])
+            model_id = int(model_matrix[2][0][0])
             # correct instance when make is mispelled
             if make == "BWM":
                 make = "BMW"
@@ -90,9 +96,9 @@ class CompCarDataset(chip.ChipDataset):
         # identify all the chips, default query to all
         all_names_filepaths = {
             utils.SetType.ALL.value: [self.__filepaths.name_test, self.__filepaths.name_train], 
-            utils.SetType.TEST.value: [self.__filepaths.name_test]
-            utils.SetType.TRAIN.value: [self.__filepaths.name_train]
-        }.get(self.set_type, [self.__filepaths.name_test, self.__filepaths.nmae_train])
+            utils.SetType.TEST.value: [self.__filepaths.name_test],
+            utils.SetType.TRAIN.value: [self.__filepaths.name_train],
+        }.get(self.set_type, [self.__filepaths.name_test, self.__filepaths.name_train])
         # create chip objects based on the names listed in the files
         for name_filepath in all_names_filepaths:
             for name in open(name_filepath):
@@ -106,8 +112,8 @@ class CompCarDataset(chip.ChipDataset):
         filepath = img_dir + "/" + img_name
         car_id = int(splitter[0])
         cam_id = None
-        time = None        
-        misc["color"] = self.__color_map[filepath]
+        time = None
+        misc["color"] = self.__color_map[img_name]
         make, model, model_id = self.__model_map[car_id]
         misc["make"] = make
         misc["model"] = model

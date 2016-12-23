@@ -64,21 +64,17 @@ def test_veri_chips_len(veri):
     FILE_NAMES = veri[1]
     # check that self.chips has been created, is not empty, and has the right
     # number of entries
-    print(FILE_NAMES)
-    print(instantiated_class)
     assert len(FILE_NAMES)
     assert len(FILE_NAMES) == len(instantiated_class.chips)
 
 
 def test_veri_chips_vals(veri):
-    # FIX 
-    """ Test that StrDataset chips have the correct values. """
+    """ Test that VeriDataset chips have the correct values. """
     instantiated_class = veri[0]
     FILE_NAMES = veri[1]
 
     # Check that the correct chips exist
     for filepath, car_id, cam_id, time, misc in FILE_NAMES:
-        print(filepath)
         chip = instantiated_class.chips[filepath]
         assert car_id == chip.car_id
         assert cam_id == chip.cam_id
@@ -90,7 +86,7 @@ def test_veri_chips_vals(veri):
 
 
 def test_get_all_chips_by_car_id(veri):
-    """ Test StrDataset.get_all_chips_by_car_id() """
+    """ Test VeriDataset.get_all_chips_by_car_id() """
     instantiated_class = veri[0]
     FILE_NAMES = veri[1]
 
@@ -111,7 +107,7 @@ def test_get_all_chips_by_car_id(veri):
 
 
 def test_get_all_chips_by_cam_id(veri):
-    """ Test StrDataset.get_all_chips_by_cam_id() """
+    """ Test VeriDataset.get_all_chips_by_cam_id() """
     instantiated_class = veri[0]
     FILE_NAMES = veri[1]
 
@@ -132,7 +128,7 @@ def test_get_all_chips_by_cam_id(veri):
 
 
 def test_get_distinct_cams_by_car_id(veri):
-    """ Test StrDataset.get_distinct_cams_by_car_id() and get_distinct_cams_per_car """
+    """ Test VeriDataset.get_distinct_cams_by_car_id() and get_distinct_cams_per_car """
     instantiated_class = veri[0]
     CAR_ID = 1
     TEST_CAMS = [1, 2, 3]
@@ -141,7 +137,7 @@ def test_get_distinct_cams_by_car_id(veri):
 
 
 def test_get_all_cam_ids(veri):    
-    """ Test StrDataset.get_distinct_cams_by_car_id() """
+    """ Test VeriDataset.get_distinct_cams_by_car_id() """
     instantiated_class = veri[0]
     TEST_CAMS = [1, 2, 3]
     for test_cam, cam in zip(TEST_CAMS, sorted(instantiated_class.get_all_cam_ids())):
@@ -149,7 +145,7 @@ def test_get_all_cam_ids(veri):
 
 
 def test_get_all_car_ids(veri):
-    """ Test StrDataset.get_distinct_cams_by_car_id() """
+    """ Test VeriDataset.get_distinct_cams_by_car_id() """
     instantiated_class = veri[0]
     TEST_CARS = [1, 2]
     for test_car, car in zip (TEST_CARS, sorted(instantiated_class.get_all_car_ids())):
@@ -157,8 +153,7 @@ def test_get_all_car_ids(veri):
 
 
 def test_veri_iter(veri):
-    # FIX
-    """ Test StrDataset.__iter__() """
+    """ Test VeriDataset.__iter__() """
     instantiated_class = veri[0]
     FILE_NAMES = veri[1]
     chip_ids = tuple(i for i, _, _, _, _ in FILE_NAMES)
