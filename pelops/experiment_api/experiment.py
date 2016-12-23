@@ -216,7 +216,7 @@ if __name__ == '__main__':
     # options
     parser.add_argument("-v", "--version", action="version",
                         version="Experiment Generator 1.0")
-    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarsDataset", "StrDataset", "VeriDataset"], type=str,
+    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
                         help="Specify the datasets to use.")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")

@@ -300,7 +300,7 @@ if __name__ == '__main__':
                         help="Path to the feature json file.\nMake sure that feature is the same type as TYPE.")
     # options
     parser.add_argument("-v", "--version", action="version", version="Metric Runner 1.0")
-    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarsDataset", "StrDataset", "VeriDataset"], type=str,
+    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
                         help="Specify the datasets to use.")
     parser.add_argument("-c", "--cmc", dest="cmc", action="store_true", default=False, 
                         help="Run CMC metric.")
