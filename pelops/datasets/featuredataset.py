@@ -3,7 +3,7 @@ import json
 import datetime
 import h5py
 import numpy as np
-from pelops.datasets.chip import ChipDataset
+from pelops.datasets.chip import ChipDataset, Chip
 
 class FeatureDataset(ChipDataset):
     def __init__(self, filename):
