@@ -32,7 +32,7 @@ def extract_feats_from_chips(chipbase, output_fname):
     chips = []
     for index, chip in enumerate(chipbase):
         chips.append(chip)
-        img_path = chipbase.get_chip_image_path(chip)
+        img_path = chip.filepath
         img_data = load_image(img_path)
         features[index] = image_features(img_data, model)
 
