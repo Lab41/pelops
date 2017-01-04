@@ -8,7 +8,14 @@ from pelops.datasets.chip import ChipDataset, Chip
 class FeatureDataset(ChipDataset):
     def __init__(self, filename):
         # TODO: Call super
+        super().__init__(filename)
         self.chips, self.feats = self.load(filename)
+        self.filename_lookup = {}
+        for chip_key, chip in self.chips.items():
+            self.filename_lookup[chip.filepath] = chip_key
+    
+    def get_feats_for_chip(self, chip):
+        return self.feats[self.filename_lookup[chip.filepath]]
     
     @staticmethod
     def load(filename):
