@@ -162,6 +162,7 @@ class ExperimentGenerator(object):
 # -----------------------------------------------------------------------------
 
 
+# TODO: handle cases when cam_id and time == None 
 # @timewrapper
 def main(args):
     # extract arguments from command line
