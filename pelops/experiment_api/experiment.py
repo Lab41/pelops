@@ -169,12 +169,6 @@ class ExperimentGenerator(object):
     def generate(self):
         self.__set_target_car()
         return self.__get_camset(self.target_car.car_id)
-        output = list()
-        cars_included = set()
-        for i in range(0, self.num_cams):
-            output.append(self.__get_camset(cars_included))
-        return output
-
 
 # -----------------------------------------------------------------------------
 #  Execution example
@@ -185,21 +179,18 @@ class ExperimentGenerator(object):
 def main(args):
     # extract arguments from command line
     dataset_path = args.dataset_path
-    #dataset_type = args.dataset_type
+    set_type = args.set_type
+    dataset_type = args.dataset_type
+    dataset = chip.DatasetFactory.create_dataset(dataset_type, dataset_path, set_type)
     num_cams = args.num_cams
     num_cars_per_cam = args.num_cars_per_cam
     drop_percentage = args.drop_percentage
-    #set_type = args.set_type
+    
     seed = args.seed
-
-#    # check that input_path points to a directory
-#    if not os.path.exists(dataset_path) or not os.path.isdir(dataset_path):
-#        sys.exit("ERROR: filepath to directory (%s) is invalid" %
-#                 dataset_path)
 
     # create the generator
     exp = ExperimentGenerator(
-        dataset_path, num_cams, num_cars_per_cam, drop_percentage, seed)
+        dataset, num_cams, num_cars_per_cam, drop_percentage, seed)
 
     # generate the experiment
     set_num = 1
@@ -235,8 +226,8 @@ if __name__ == '__main__':
     # options
     parser.add_argument("-v", "--version", action="version",
                         version="Experiment Generator 1.0")
-#    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
-#                        help="Specify the datasets to use.")
+    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
+                        help="Specify the datasets to use.")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
     parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
