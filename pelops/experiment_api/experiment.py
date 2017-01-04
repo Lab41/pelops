@@ -66,18 +66,19 @@ import datetime
 import os
 import random
 import sys
+from itertools import combinations
 
 import pelops.datasets.chip as chip
 import pelops.datasets.str as str_sa
 import pelops.datasets.veri as veri 
 import pelops.utils as utils
-
+from pelops.datasets.featuredataset import FeatureDataset
 
 class ExperimentGenerator(object):
 
-    def __init__(self, dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, set_type):
+    def __init__(self, dataset, num_cams, num_cars_per_cam, drop_percentage, seed):
         # set inputs
-        self.dataset = chip.DatasetFactory.create_dataset(dataset_type, dataset_path, set_type)
+        self.dataset = dataset
         self.num_cams = num_cams
         self.num_cars_per_cam = num_cars_per_cam
         self.drop_percentage = drop_percentage
@@ -87,6 +88,7 @@ class ExperimentGenerator(object):
         self.list_of_cameras_per_car = self.dataset.get_distinct_cams_per_car()
         self.list_of_cameras = self.dataset.get_all_cam_ids()
         self.list_of_cars = self.dataset.get_all_car_ids()
+        self.valid_target_cars = None
 
     def __is_only_one_car(self):
         return len(self.list_of_cars) == 1
@@ -98,62 +100,79 @@ class ExperimentGenerator(object):
         # count the number of times distinct cameras spot the car
         # has to be greater than or equal to num_cams
         # or not drop percentage is going to be higher
-        list_valid_target_cars = []
-        for car_id, cam_ids in self.list_of_cameras_per_car.items():
-            if len(cam_ids) >= self.num_cams or self.num_cams > len(self.list_of_cameras):
-                list_valid_target_cars.append(car_id)
-
+        if self.valid_target_cars is None:
+            self.valid_target_cars = {}
+            for car_id, cam_ids in self.list_of_cameras_per_car.items():
+                valid_cameras = self.__get_valid_potential_cameras(car_id)
+                if len(valid_cameras) > 0:
+                    self.valid_target_cars[car_id] = valid_cameras
+            self.list_valid_target_cars = list(self.valid_target_cars.keys())
         # get the target car
-        car_id = random.choice(list_valid_target_cars)
+        
+        car_id = random.choice(self.list_valid_target_cars)
+        
         self.target_car = random.choice(
             list(self.dataset.get_all_chips_by_car_id(car_id)))
-
-    def __create_similar_target_car(self):
-        while True:
-            similar_target_car = random.choice(
-                list(self.dataset.get_all_chips_by_car_id(self.target_car.car_id)))
-            # WARNING: If the car is only taken by one camera, this will go into an infinite loop
-            # prevent that from happening with this check
-            if self.__is_taken_by_only_one_camera(self.target_car.car_id):
-                break
-            # make sure the car is taken by a different camera
-            if self.target_car.cam_id != similar_target_car.cam_id:
-                break
-        return similar_target_car
-
-    def __get_camset(self):
-        num_imgs_per_camset = self.num_cars_per_cam
-        camset = list()
-        which_cam_id = random.choice(list(self.list_of_cameras))
-        # determine whether or not to add a different target car image
-        if not utils.should_drop(self.drop_percentage):
-            num_imgs_per_camset = num_imgs_per_camset - 1
-            similar_target_car = self.__create_similar_target_car()
-            which_cam_id = similar_target_car.cam_id
-            camset.append(similar_target_car)
-        # grab images
-        exist_car = list()
-        for i in range(0, num_imgs_per_camset):
-            while True:
-                random_car = random.choice(
-                    list(self.dataset.get_all_chips_by_cam_id(which_cam_id)))
-                # WARNING: If the dataset only contains one car, this will go into an infinite loop
-                # prevent that from happening with this check
-                if self.__is_only_one_car():
-                    break
-                # check if same car already existed
-                if(random_car.car_id not in exist_car):
-                    # different car
-                    break
-            exist_car.append(random_car.car_id)
-            camset.append(random_car)
-        return camset
+    
+    def __get_valid_potential_cameras(self, target_car):
+        # TODO: list_of_cameras should be filtered by having more than # cars in camera
+        
+        chips_with_target_car = self.dataset.get_all_chips_by_car_id(target_car)
+        potential_cameras = set([chip.cam_id for chip in chips_with_target_car])
+        valid_combinations = []
+        for cameras in combinations(potential_cameras, self.num_cams):
+            used_cars = set()
+            isValid = True
+            for camera in cameras:
+                # Get cars for this cars
+                chips = self.dataset.get_all_chips_by_cam_id(camera)
+                car_ids = set([chip.car_id for chip in chips])
+                if len(car_ids - used_cars) < self.num_cars_per_cam:
+                    isValid = False
+                used_cars.update(car_ids)
+            if isValid:
+                valid_combinations.append(cameras)
+                # TODO: THis should not be here
+                return valid_combinations
+        return valid_combinations
+    
+    def __get_valid_sample(cars, num_items):
+        for i in range(1000):
+            sample = random.sample(other_cars, num_items)
+            if len(set([chip.car_id for chip in sample])) == num_items:
+                return sample
+        raise ValueError('Exceed maximum sample attempts, possibly no valid experiment')
+    
+    def __get_camset(self, target_car):
+        valid_camera_sets = self.valid_target_cars[target_car]
+        camera_set = random.choice(valid_camera_sets)
+        camera_sets = []
+        used_cars = set([target_car])
+        for camera in camera_set:
+            camera_set = []
+            # Add target car to set
+            potential = self.dataset.get_all_chips_by_car_id_camera_id(target_car, camera)
+            camera_set.append(random.choice(potential))
+            
+            # Add other cars
+            other_cars = self.dataset.get_all_chips_by_cam_id(camera)
+            # Filter to exclude already includd cars
+            other_cars = [chip for chip in other_cars if chip.car_id not in used_cars]
+            selected_chips = random.sample(other_cars, self.num_cars_per_cam -1)
+            used_cars.update([chip.car_id for chip in selected_chips])
+            camera_set.extend(selected_chips)
+            
+            camera_sets.append(camera_set)
+        return camera_sets
+    
 
     def generate(self):
         self.__set_target_car()
+        return self.__get_camset(self.target_car.car_id)
         output = list()
+        cars_included = set()
         for i in range(0, self.num_cams):
-            output.append(self.__get_camset())
+            output.append(self.__get_camset(cars_included))
         return output
 
 
@@ -166,21 +185,21 @@ class ExperimentGenerator(object):
 def main(args):
     # extract arguments from command line
     dataset_path = args.dataset_path
-    dataset_type = args.dataset_type
+    #dataset_type = args.dataset_type
     num_cams = args.num_cams
     num_cars_per_cam = args.num_cars_per_cam
     drop_percentage = args.drop_percentage
-    set_type = args.set_type
+    #set_type = args.set_type
     seed = args.seed
 
-    # check that input_path points to a directory
-    if not os.path.exists(dataset_path) or not os.path.isdir(dataset_path):
-        sys.exit("ERROR: filepath to directory (%s) is invalid" %
-                 dataset_path)
+#    # check that input_path points to a directory
+#    if not os.path.exists(dataset_path) or not os.path.isdir(dataset_path):
+#        sys.exit("ERROR: filepath to directory (%s) is invalid" %
+#                 dataset_path)
 
     # create the generator
     exp = ExperimentGenerator(
-        dataset_path, dataset_type, num_cams, num_cars_per_cam, drop_percentage, seed, set_type)
+        dataset_path, num_cams, num_cars_per_cam, drop_percentage, seed)
 
     # generate the experiment
     set_num = 1
@@ -216,8 +235,8 @@ if __name__ == '__main__':
     # options
     parser.add_argument("-v", "--version", action="version",
                         version="Experiment Generator 1.0")
-    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
-                        help="Specify the datasets to use.")
+#    parser.add_argument("-w", dest="dataset_type", action="store", choices=["CompcarDataset", "StrDataset", "VeriDataset"], type=str,
+#                        help="Specify the datasets to use.")
     parser.add_argument("-s", dest="num_cams", action="store", type=int,
                         help="Each camera maps to a set.\nNUM_CAMS specifies the number of camera sets to be outputted.")
     parser.add_argument("-c", dest="num_cars_per_cam", action="store", type=int,
