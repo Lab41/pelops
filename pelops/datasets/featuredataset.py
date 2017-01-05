@@ -42,7 +42,7 @@ class FeatureDataset(ChipDataset):
             return chips, feats
     
     @staticmethod
-    def save(self, filename, chips, features):
+    def save(filename, chips, features):
         with h5py.File(filename, 'w') as fOut:
             fOut.create_dataset('feats', data=features)
             for field in chips[0]._fields:
