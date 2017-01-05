@@ -1,4 +1,6 @@
+numpy
 scipy
 matplotlib
 logger
 python-resize-image
+h5py
