@@ -40,6 +40,4 @@ def test_get_feats(chips, feature_dataset):
 
 def test_load_save(chips, feature_dataset):
     chip_key = next(iter(chips))
-    print(chips[chip_key])
-    print(feature_dataset.chips[chip_key])
     assert feature_dataset.chips[chip_key] == chips[chip_key]
