@@ -4,6 +4,7 @@ from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input
 from keras.models import Model
 
+from pelops.datasets.featuredataset import FeatureDataset
 
 def load_image(img_path, resizex=224, resizey=224):
     data = image.load_img(img_path, target_size=(resizex, resizey))
@@ -25,15 +26,18 @@ def image_features(img, model):
     features = model.predict(img)
     return features
 
-def extract_feats_from_chips(chipbase, output_fname):
+def extract_feats_from_chips(chipdataset, output_fname):
     model, base_model = get_models()
 
-    features = np.zeros((len(chipbase), 2048), dtype=np.float16)
+    features = np.zeros((len(chipdataset), 2048), dtype=np.float16)
     chips = []
-    for index, chip in enumerate(chipbase):
+    chip_keys = []
+    for index, (chip_key, chip) in enumerate(chipdataset.chips.items()):
+        chip_keys.append(chip_key)
         chips.append(chip)
         img_path = chip.filepath
         img_data = load_image(img_path)
         features[index] = image_features(img_data, model)
-
-    return (chips, features)
+    
+    FeatureDataset.save(output_fname, chip_keys, chips, features)
+    return True
