@@ -2,3 +2,4 @@ scipy
 matplotlib
 logger
 python-resize-image
+tqmd
