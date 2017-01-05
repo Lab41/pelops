@@ -1,4 +1,3 @@
-import abc
 import json
 import datetime
 import h5py
@@ -38,19 +37,26 @@ class FeatureDataset(ChipDataset):
                 filepath = local_hdf5['filepath'][i].decode('utf-8')
                 car_id = local_hdf5['car_id'][i]
                 cam_id = local_hdf5['cam_id'][i]
-                time = datetime.datetime.fromtimestamp(local_hdf5['time'][i]/1000.0)
+                timestamp = local_hdf5['time'][i]
+                if isinstance(timestamp, str) or isinstance(timestamp, bytes):
+                    # Catch the case where we have encoded time as a string timestamp
+                    timestamp = datetime.datetime.fromtimestamp(float(timestamp))
                 misc = json.loads(local_hdf5['misc'][i].decode('utf-8'))
                 chip_key = local_hdf5['chip_keys'][i]
+                if isinstance(chip_key, bytes):
+                    chip_key = chip_key.decode('utf-8')
                 chip_index_lookup[chip_key] = i
-                chips[chip_key] = Chip(filepath, car_id, cam_id, time, misc)
+                chips[chip_key] = Chip(filepath, car_id, cam_id, timestamp, misc)
             return chip_index_lookup, chips, feats
 
     @staticmethod
     def _save_field(fOut, field_example, field_name, value_array):
         if isinstance(field_example, datetime.datetime):
-            times =  np.array([val.timestamp() for val in value_array])
-            times = times * 1000.0 # Convert to ms since epoch
-            fOut.create_dataset(field_name, data=times, dtype=np.int64)
+            # Encode time as a string seconds since epoch
+            times = np.array([str(val.timestamp()).encode('ascii', 'ignore') for val in value_array])
+            fOut.create_dataset(field_name,
+                                data=times,
+                                dtype=h5py.special_dtype(vlen=bytes))
         elif isinstance(field_example, str):
             output_vals = [val.encode('ascii', 'ignore') for val in value_array]
             fOut.create_dataset(field_name,
