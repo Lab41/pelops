@@ -3,5 +3,4 @@ scipy
 matplotlib
 logger
 python-resize-image
-tqmd
 h5py
