@@ -77,7 +77,7 @@ def pre_cmc(featureData, experimentGen,
 # comparison - function that compares two feature vectors returning
 #              distance measure, 0 -> close  big -> far
 def repeat_pre_cmc(featureData, experimentGen, NUMCMC=100,
-                   EXPPERCMC=100, comparison=comp_cosine):
+                   EXPPERCMC=1000, comparison=comp_cosine):
     experimentHolder = []
     for experiment in range(NUMCMC):
         experimentHolder.append(pre_cmc(featureData, experimentGen,
