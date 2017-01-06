@@ -13,16 +13,17 @@ def comparisonCosine(cam1_feat, cam2_feat):
 
 # compute euclidian distance
 # 0 -> things are closer
-# - -> thins are far
+# + -> thins are far
 def comparisonEuclidian(cam1_feat, cam2_feat):
-    retval = -1*abs(euclidean(cam1_feat, cam2_feat))
+    retval = abs(euclidean(cam1_feat, cam2_feat))
     return (retval)
 
 
 # do the comparisons between chips
 # cam1 - listing of chips seen at cam1
 # cam2 - listing of chips seen at cam1
-
+# comparison - function to compare 2 vectors should return small things
+#              when comparison is close, large otherwise
 def is_correct_match(featureData,
                      cam1,
                      cam2,
@@ -46,8 +47,8 @@ def is_correct_match(featureData,
 
 
 # do EXPERIMENTS, determine
-def preCMC(featureData, experimentGen,
-           EXPERIMENTS=100, comparison=comparisonCosine):
+def pre_cmc(featureData, experimentGen,
+            EXPERIMENTS=100, comparison=comparisonCosine):
 
     num_downs = defaultdict(int)
     for i in range(EXPERIMENTS):
@@ -64,20 +65,20 @@ def preCMC(featureData, experimentGen,
 # Generate unprocessed CMC curves
 # the data needs to be summed to make the correct
 # CMC curve
-def makeManyPreCMC(featureData, experimentGen, N=100,
+def repeat_pre_cmc(featureData, experimentGen, N=100,
                    EXPERIMENTS=100, comparison=comparisonCosine):
     experimentHolder = []
     for experiment in range(N):
-        experimentHolder.append(preCMC(featureData, experimentGen,
-                                       EXPERIMENTS=EXPERIMENTS,
-                                       comparison=comparisonCosine))
-    return experimentHolder
+        experimentHolder.append(pre_cmc(featureData, experimentGen,
+                                        EXPERIMENTS=EXPERIMENTS,
+                                        comparison=comparisonCosine))
+        return experimentHolder
 
 
 # finalize creation of the CMC curves
 # generate statistics on the CMC curves
 # return all
-def makeCMCStats(experimentHolder, itemsPerCamera):
+def make_cmc_stats(experimentHolder, itemsPerCamera):
     comparisons = itemsPerCamera*itemsPerCamera
     stats = np.zeros((len(experimentHolder), comparisons))
 
