@@ -1,28 +1,32 @@
 import numpy as np
-from pelops.datasets.featuredataset import FeatureDataset
-from pelops.experiment_api.experiment import ExperimentGenerator
-from pelops.datasets import chip
 from collections import defaultdict
 from scipy.spatial.distance import cosine, euclidean
 
 
 # compute cosine distance
+# 0 -> things are closer
+# 1 -> things are far
 def comparisonCosine(cam1_feat, cam2_feat):
     retval = 1 - cosine(cam1_feat, cam2_feat)
     return (retval)
 
 
 # compute euclidian distance
+# 0 -> things are closer
+# - -> thins are far
 def comparisonEuclidian(cam1_feat, cam2_feat):
     retval = -1*abs(euclidean(cam1_feat, cam2_feat))
     return (retval)
 
 
 # do the comparisons between chips
+# cam1 - listing of chips seen at cam1
+# cam2 - listing of chips seen at cam1
+
 def is_correct_match(featureData,
                      cam1,
                      cam2,
-                     topN=2, verbose=False, comparison=comparisonCosine):
+                     comparison=comparisonCosine, verbose=False):
     similarities = []
     for cam1_chip in cam1:
         cam1_feat = featureData.get_feats_for_chip(cam1_chip)
@@ -30,7 +34,6 @@ def is_correct_match(featureData,
             cam2_feat = featureData.get_feats_for_chip(cam2_chip)
             similarity = comparison(cam1_feat, cam2_feat)
             similarities.append((similarity, cam1_chip, cam2_chip))
-
     similarities.sort(reverse=True)
     for i, (similarity, chip1, chip2) in enumerate(similarities):
         # return best_match
@@ -64,7 +67,7 @@ def preCMC(featureData, experimentGen,
 def makeManyPreCMC(featureData, experimentGen, N=100,
                    EXPERIMENTS=100, comparison=comparisonCosine):
     experimentHolder = []
-    for experiment in tnrange(N):
+    for experiment in range(N):
         experimentHolder.append(preCMC(featureData, experimentGen,
                                        EXPERIMENTS=EXPERIMENTS,
                                        comparison=comparisonCosine))
