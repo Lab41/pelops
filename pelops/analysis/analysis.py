@@ -6,7 +6,7 @@ from scipy.spatial.distance import cosine, euclidean
 # compute cosine distance
 # 0 -> things are closer
 # 1 -> things are far
-def comparisonCosine(cam1_feat, cam2_feat):
+def comp_cosine(cam1_feat, cam2_feat):
     retval = 1 - cosine(cam1_feat, cam2_feat)
     return (retval)
 
@@ -14,7 +14,7 @@ def comparisonCosine(cam1_feat, cam2_feat):
 # compute euclidian distance
 # 0 -> things are closer
 # + -> thins are far
-def comparisonEuclidian(cam1_feat, cam2_feat):
+def comp_euclid(cam1_feat, cam2_feat):
     retval = abs(euclidean(cam1_feat, cam2_feat))
     return (retval)
 
@@ -28,7 +28,7 @@ def comparisonEuclidian(cam1_feat, cam2_feat):
 def is_correct_match(featureData,
                      cam1,
                      cam2,
-                     comparison=comparisonCosine, verbose=False):
+                     comparison=comp_cosine, verbose=False):
     similarities = []
     for cam1_chip in cam1:
         cam1_feat = featureData.get_feats_for_chip(cam1_chip)
@@ -53,13 +53,13 @@ def is_correct_match(featureData,
 # EXPPERCMC - number of experiments to run for a single CMC
 # comparison - function to compare 2 feature vectors
 def pre_cmc(featureData, experimentGen,
-            EXPPERCMC=100, comparison=comparisonCosine):
+            EXPPERCMC=100, comparison=comp_cosine):
 
     num_downs = defaultdict(int)
     for i in range(EXPPERCMC):
         a = experimentGen.generate()
         num_down = is_correct_match(featureData, a[0], a[1],
-                                    comparison=comparisonCosine)
+                                    comparison=comp_cosine)
         num_downs[num_down] += 1
 
     keys = sorted(num_downs)
@@ -77,12 +77,12 @@ def pre_cmc(featureData, experimentGen,
 # comparison - function that compares two feature vectors returning
 #              distance measure, 0 -> close  big -> far
 def repeat_pre_cmc(featureData, experimentGen, NUMCMC=100,
-                   EXPPERCMC=100, comparison=comparisonCosine):
+                   EXPPERCMC=100, comparison=comp_cosine):
     experimentHolder = []
     for experiment in range(NUMCMC):
         experimentHolder.append(pre_cmc(featureData, experimentGen,
                                         EXPPERCMC=EXPPERCMC,
-                                        comparison=comparisonCosine))
+                                        comparison=comp_cosine))
         return experimentHolder
 
 
