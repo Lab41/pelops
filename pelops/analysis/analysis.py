@@ -24,6 +24,7 @@ def comparisonEuclidian(cam1_feat, cam2_feat):
 # cam2 - listing of chips seen at cam1
 # comparison - function to compare 2 vectors should return small things
 #              when comparison is close, large otherwise
+# verbose - return more info if true
 def is_correct_match(featureData,
                      cam1,
                      cam2,
@@ -46,12 +47,16 @@ def is_correct_match(featureData,
     raise ValueError("Huh?")
 
 
-# do EXPERIMENTS, determine
+# do EXPPERCMC, determine
+# featureData - big table to look up data
+# experimentGen  - function to create experiments
+# EXPPERCMC - number of experiments to run for a single CMC
+# comparison - function to compare 2 feature vectors
 def pre_cmc(featureData, experimentGen,
-            EXPERIMENTS=100, comparison=comparisonCosine):
+            EXPPERCMC=100, comparison=comparisonCosine):
 
     num_downs = defaultdict(int)
-    for i in range(EXPERIMENTS):
+    for i in range(EXPPERCMC):
         a = experimentGen.generate()
         num_down = is_correct_match(featureData, a[0], a[1],
                                     comparison=comparisonCosine)
@@ -59,18 +64,24 @@ def pre_cmc(featureData, experimentGen,
 
     keys = sorted(num_downs)
     vals = [num_downs[key] for key in keys]
-    return((keys, np.array(vals)/EXPERIMENTS))
+    return((keys, np.array(vals)/EXPPERCMC))
 
 
 # Generate unprocessed CMC curves
 # the data needs to be summed to make the correct
 # CMC curve
-def repeat_pre_cmc(featureData, experimentGen, N=100,
-                   EXPERIMENTS=100, comparison=comparisonCosine):
+# featureData - FeatureDataset of chips
+# experimentGen - ExperimentGenerator
+# NUMCMC - number of CMC to build
+# EXPPERCMC - number of experiments run per CMC
+# comparison - function that compares two feature vectors returning
+#              distance measure, 0 -> close  big -> far
+def repeat_pre_cmc(featureData, experimentGen, NUMCMC=100,
+                   EXPPERCMC=100, comparison=comparisonCosine):
     experimentHolder = []
-    for experiment in range(N):
+    for experiment in range(NUMCMC):
         experimentHolder.append(pre_cmc(featureData, experimentGen,
-                                        EXPERIMENTS=EXPERIMENTS,
+                                        EXPPERCMC=EXPPERCMC,
                                         comparison=comparisonCosine))
         return experimentHolder
 
@@ -78,6 +89,8 @@ def repeat_pre_cmc(featureData, experimentGen, N=100,
 # finalize creation of the CMC curves
 # generate statistics on the CMC curves
 # return all
+# experimentHolder - array of CMC curves
+# itemsPerCamera - number of items on a camera
 def make_cmc_stats(experimentHolder, itemsPerCamera):
     comparisons = itemsPerCamera*itemsPerCamera
     stats = np.zeros((len(experimentHolder), comparisons))
