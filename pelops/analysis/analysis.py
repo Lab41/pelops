@@ -53,13 +53,13 @@ def is_correct_match(featureData,
 # EXPPERCMC - number of experiments to run for a single CMC
 # comparison - function to compare 2 feature vectors
 def pre_cmc(featureData, experimentGen,
-            EXPPERCMC=100, comparison=comp_cosine):
+            EXPPERCMC=1000, comparison=comp_cosine):
 
     num_downs = defaultdict(int)
     for i in range(EXPPERCMC):
         a = experimentGen.generate()
         num_down = is_correct_match(featureData, a[0], a[1],
-                                    comparison=comp_cosine)
+                                    comparison=comparison)
         num_downs[num_down] += 1
 
     keys = sorted(num_downs)
@@ -82,8 +82,8 @@ def repeat_pre_cmc(featureData, experimentGen, NUMCMC=100,
     for experiment in range(NUMCMC):
         experimentHolder.append(pre_cmc(featureData, experimentGen,
                                         EXPPERCMC=EXPPERCMC,
-                                        comparison=comp_cosine))
-        return experimentHolder
+                                        comparison=comparison))
+    return experimentHolder
 
 
 # finalize creation of the CMC curves
