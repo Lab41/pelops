@@ -1,7 +1,7 @@
 import pytest
 
 from collections import namedtuple
-from itertools import product, permutations
+from itertools import product, combinations_with_replacement
 from pelops.datasets.chip import Chip
 import pelops.training.utils as utils
 
@@ -11,21 +11,30 @@ def make_model_color_classes():
     MAKES = ("Honda", "Toyota", None,)
     MODELS = ("Civic", "Corolla", None,)
     COLORS = ("Red", "Blue", None,)
-    MAKE_P = permutations(MAKES, 2)
-    MODEL_P = permutations(MODELS, 2)
-    COLOR_P = permutations(COLORS, 2)
+
+    # Make all possible sets of three "chips", including with replacement, so
+    # for example we'll get:
+    #
+    # (Honda, Honda, Honda)
+    # (Honda, Honda, Toyota)
+    # (Honda, Toyota, None)
+    #
+    # And others
+    NUMBER_OF_CHIPS = 3
+    MAKE_P = combinations_with_replacement(MAKES, NUMBER_OF_CHIPS)
+    MODEL_P = combinations_with_replacement(MODELS, NUMBER_OF_CHIPS)
+    COLOR_P = combinations_with_replacement(COLORS, NUMBER_OF_CHIPS)
 
     answer = namedtuple("answer", ["make", "model", "color"])
 
     chips_and_answers = []
     for makes, models, colors in product(MAKE_P, MODEL_P, COLOR_P):
-        chip0 = Chip(None, None, None, None, {"make": makes[0], "model": models[0], "color": colors[0], "other_key": "DO NOT SELECT THIS"})
-        chip1 = Chip(None, None, None, None, {"make": makes[1], "model": models[1], "color": colors[1], "other_key": "DO NOT SELECT THIS"})
-        ans0 = answer(makes[0], models[0], colors[0])
-        ans1 = answer(makes[1], models[1], colors[1])
-        ans = (ans0, ans1)
-        chips = (chip0, chip1)
-        chips_and_answers.append((chips, ans))
+        chips = []
+        ans = []
+        for make, model, color in zip(makes, models, colors):
+            chips.append(Chip(None, None, None, None, {"make": make, "model": model, "color": color, "other_key": "DO NOT SELECT THIS"}))
+            ans.append(answer(make, model, color))
+        chips_and_answers.append((tuple(chips), tuple(ans)))
 
     return chips_and_answers
 
