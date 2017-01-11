@@ -1,6 +1,35 @@
 from pelops.datasets.chip import ChipDataset
 
 
+def attributes_to_classes(chip_dataset, value_extractor):
+    """Extract a set of attributes from a set of Chips and uses them to make
+    unique classses.
+
+    Args:
+        chip_dataset: A ChipDataset, or other iterable of Chips
+        value_extractor: A callable that takes a chip and returns a tuple
+            representing the attributes in that chip that you care about. For
+            example, you might write a function to return the make and model,
+            or color.
+
+    Returns:
+        dict: a dictionary mapping the output of value_extractor(chip) to a
+            class number.
+    """
+    class_to_index = {}
+    current_index = 0
+    for chip in chip_dataset:
+        # Get the class from the specified attributes
+        key = value_extractor(chip)
+
+        # If the key is new, add it to our dictionaries
+        if key not in class_to_index:
+            class_to_index[key] = current_index
+            current_index += 1
+
+    return class_to_index
+
+
 def make_model(chip):
     """ Given a chip, return make and model.
 
