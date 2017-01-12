@@ -12,18 +12,19 @@ def attributes_to_classes(chip_dataset, chip_tuplizer):
     The chip_tuplizer is a function (or other callable) with the following
     signature:
 
-        chip_tuplizer(chip) -> tuple
+        chip_tuplizer(chip) -> hashable tuple
 
     It returns a tuple derived from the chip. All chips that output the same
-    tuple will be considered as part of the same class for training. An example
-    tuplizer might do the following:
+    tuple will be considered as part of the same class for training, where
+    "sameness" is determined by hashing the tuple. An example tuplizer might do
+    the following:
 
         chip_tuplizer(chip) -> (make, model)
 
     Args:
         chip_dataset: A ChipDataset, or other iterable of Chips
-        chip_tuplizer: A function that takes a chip and returns a tuple
-            derived from the chip.
+        chip_tuplizer: A function that takes a chip and returns a hashable
+            tuple derived from the chip.
 
     Returns:
         dict: a dictionary mapping the output of chip_tuplizer(chip) to a
