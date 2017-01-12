@@ -165,8 +165,9 @@ def test_KerasDirectory_write_links(tmpdir, fake_dataset):
     # Because we always read through the chips dictionary in the same order,
     # the output files are deterministic. We now check that they exist.
     for i, chip in enumerate(fake_dataset.chips.values()):
-        f = str(out_dir) + "/all/" + str(i) + "/" + os.path.basename(chip.filepath)
-        is_file = os.path.isfile(f)
+        file_basename = os.path.basename(chip.filepath)
+        test_file = os.path.join(str(out_dir), "all", str(i), file_basename)
+        is_file = os.path.isfile(test_file)
         assert is_file
 
 

@@ -213,7 +213,8 @@ class KerasDirectory(object):
             filename = os.path.basename(src)
             chip_class = self.__chip_tuplizer(chip)
             chip_index = self.__class_to_index[chip_class]
-            dest_dir = output_directory + "/" + root + "/" + str(chip_index) + "/"
+            dest_dir = os.path.join(output_directory, root, str(chip_index))
 
             os.makedirs(dest_dir, exist_ok=True)
-            os.link(src=src, dst=dest_dir + filename)
+            dst = os.path.join(dest_dir, filename)
+            os.link(src=src, dst=dst)
