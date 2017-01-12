@@ -184,7 +184,14 @@ class KerasDirectory(object):
         the SetType, but you can reset it by passing in root.
 
         Args:
-
+            output_directory (str): The location to write the files to, it must
+                already exist.
+            root (str, Defaults to None): A base directory to create in the
+                output_directory, under which all further directories will be
+                written. If not specified, the class will choose between
+                "test", "train", "query", and "all" depending on the `SetType`
+                of the `chip_dataset`. If you would like no directory, use a
+                blank string "".
         """
         # Override root with self.root if not set
         if root is None:
