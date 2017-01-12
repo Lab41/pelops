@@ -47,9 +47,9 @@ def test_attributes_to_classes(make_model_color_classes):
     # The tuplizer function, and the indices from the answer namedtuple
     # corresponding to what is returned by the function
     function_and_indices = (
-        (utils.make_model, [0, 1]),
-        (utils.color, [2]),
-        (utils.make_model_color, [0, 1, 2]),
+        (utils.tuplize_make_model, [0, 1]),
+        (utils.tuplize_color, [2]),
+        (utils.tuplize_make_model_color, [0, 1, 2]),
     )
 
     for chips, answers in chips_and_answers:
@@ -110,21 +110,21 @@ def chips_and_answers():
     return chips_and_answers
 
 
-def test_make_model(chips_and_answers):
+def test_tuplize_make_model(chips_and_answers):
     for chip, answer in chips_and_answers:
         real_answer = (answer.make, answer.model)
-        assert utils.make_model(chip) == real_answer
+        assert utils.tuplize_make_model(chip) == real_answer
 
 
-def test_color(chips_and_answers):
+def test_tuplize_color(chips_and_answers):
     for chip, answer in chips_and_answers:
         real_answer = (answer.color,)
-        assert utils.color(chip) == real_answer
+        assert utils.tuplize_color(chip) == real_answer
 
 
-def test_make_model_color(chips_and_answers):
+def test_tuplize_make_model_color(chips_and_answers):
     for chip, answer in chips_and_answers:
-        assert utils.make_model_color(chip) == answer
+        assert utils.tuplize_make_model_color(chip) == answer
 
 
 # A fake ChipDataset
@@ -159,7 +159,7 @@ def fake_dataset(tmpdir):
 def test_KerasDirectory_write_links(tmpdir, fake_dataset):
     # Link the files into the tmp directory
     out_dir = tmpdir.mkdir("output")
-    kd = utils.KerasDirectory(fake_dataset, utils.make_model)
+    kd = utils.KerasDirectory(fake_dataset, utils.tuplize_make_model)
     kd.write_links(output_directory=str(out_dir))
 
     # Because we always read through the chips dictionary in the same order,

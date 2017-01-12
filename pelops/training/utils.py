@@ -5,26 +5,35 @@ import os.path
 
 
 
-def attributes_to_classes(chip_dataset, value_extractor):
+def attributes_to_classes(chip_dataset, chip_tuplizer):
     """Extract a set of attributes from a set of Chips and uses them to make
     unique classses.
 
+    The chip_tuplizer is a function (or other callable) with the following
+    signature:
+
+        chip_tuplizer(chip) -> tuple
+
+    It returns a tuple derived from the chip. All chips that output the same
+    tuple will be considered as part of the same class for training. An example
+    tuplizer might do the following:
+
+        chip_tuplizer(chip) -> (make, model)
+
     Args:
         chip_dataset: A ChipDataset, or other iterable of Chips
-        value_extractor: A callable that takes a chip and returns a tuple
-            representing the attributes in that chip that you care about. For
-            example, you might write a function to return the make and model,
-            or color.
+        chip_tuplizer: A function that takes a chip and returns a tuple
+            derived from the chip.
 
     Returns:
-        dict: a dictionary mapping the output of value_extractor(chip) to a
+        dict: a dictionary mapping the output of chip_tuplizer(chip) to a
             class number.
     """
     class_to_index = {}
     current_index = 0
     for chip in chip_dataset:
         # Get the class from the specified attributes
-        key = value_extractor(chip)
+        key = chip_tuplizer(chip)
 
         # If the key is new, add it to our dictionaries
         if key not in class_to_index:
@@ -34,8 +43,8 @@ def attributes_to_classes(chip_dataset, value_extractor):
     return class_to_index
 
 
-def make_model(chip):
-    """ Given a chip, return make and model.
+def tuplize_make_model(chip):
+    """ Given a chip, return make and model tuple.
 
     Make and model are extracted from chip.misc using the keys "make" and
     "model". If they are missing it returns None for that value. If misc
@@ -64,7 +73,7 @@ def make_model(chip):
     return (make, model)
 
 
-def color(chip):
+def tuplize_color(chip):
     """ Given a chip, returns the color as a single element tuple.
 
     Color is extracted from chip.misc using the key "color". If it is missing
@@ -92,8 +101,8 @@ def color(chip):
     return (color,)
 
 
-def make_model_color(chip):
-    """ Given a chip, returns the make, model, and color.
+def tuplize_make_model_color(chip):
+    """ Given a chip, returns the make, model, and color tuple.
 
     Color is extracted from chip.misc using the keys "make, "model", and
     "color". If misc missing or not a dictionary, (None, None, None) is returned.
@@ -106,26 +115,26 @@ def make_model_color(chip):
             of the positions (or any number of them) if it is missing in the
             chip.
     """
-    (make_val, model_val) = make_model(chip)
-    (color_val,) = color(chip)
+    (make_val, model_val) = tuplize_make_model(chip)
+    (color_val,) = tuplize_color(chip)
     return (make_val, model_val, color_val)
 
 
 class KerasDirectory(object):
-    def __init__(self, chip_dataset, value_extractor):
+    def __init__(self, chip_dataset, chip_tuplizer):
         """ Takes a ChipDataset and hard links the files to custom defined
         class directories.
 
         Args:
             chip_dataset: A ChipDataset, or other iterable of Chips
-            value_extractor: A callable that takes a chip and returns a tuple
+            chip_tuplizer: A callable that takes a chip and returns a tuple
                 representing the attributes in that chip that you care about.
                 For example, you might write a function to return the make and
                 model, or maybe color.
         """
         # Set up internal variables
         self.__chip_dataset = chip_dataset
-        self.__value_extractor = value_extractor
+        self.__chip_tuplizer = chip_tuplizer
 
         # Class setup functions
         self.__set_root_dir()
@@ -133,7 +142,7 @@ class KerasDirectory(object):
         # Set up the class to index mapping
         self.__class_to_index = attributes_to_classes(
             self.__chip_dataset,
-            self.__value_extractor,
+            self.__chip_tuplizer,
         )
 
 
@@ -201,7 +210,7 @@ class KerasDirectory(object):
         for chip in self.__chip_dataset:
             src = chip.filepath
             filename = os.path.basename(src)
-            chip_class = self.__value_extractor(chip)
+            chip_class = self.__chip_tuplizer(chip)
             chip_index = self.__class_to_index[chip_class]
             dest_dir = output_directory + "/" + root + "/" + str(chip_index) + "/"
 
