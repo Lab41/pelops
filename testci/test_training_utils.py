@@ -3,10 +3,12 @@ import pytest
 from collections import namedtuple
 from itertools import product, combinations_with_replacement
 from pelops.datasets.chip import Chip
+from pelops.utils import SetType
+import os.path
 import pelops.training.utils as utils
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def make_model_color_classes():
     MAKES = ("Honda", "Toyota", None,)
     MODELS = ("Civic", "Corolla", None,)
@@ -75,7 +77,7 @@ def test_attributes_to_classes(make_model_color_classes):
             assert indices == {i for i in range(len(answer))}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def chips_and_answers():
     MAKES = ("Honda", None,)
     MODELS = ("Civic", None,)
@@ -123,3 +125,67 @@ def test_color(chips_and_answers):
 def test_make_model_color(chips_and_answers):
     for chip, answer in chips_and_answers:
         assert utils.make_model_color(chip) == answer
+
+
+# A fake ChipDataset
+class FakeChipDataset(object):
+    def __init__(self, chips, set_type):
+        self.chips = chips
+        self.set_type = set_type
+
+    def __iter__(self):
+        for chip in self.chips.values():
+            yield chip
+        raise StopIteration()
+
+
+@pytest.fixture()
+def fake_dataset(tmpdir):
+    MAKE_MODELS = (
+        ("1.jpg", "honda", "civic"),
+        ("2.jpg", "toyota", "corolla"),
+    )
+
+    chips = {}
+    for name, make, model in MAKE_MODELS:
+        fn = tmpdir.join(name)
+        fn.write("")
+        chip = Chip(str(fn), None, None, None, {"make": make, "model": model})
+        chips[name] = chip
+
+    return FakeChipDataset(chips, None)
+
+
+def test_KerasDirectory_write_links(tmpdir, fake_dataset):
+    # Link the files into the tmp directory
+    out_dir = tmpdir.mkdir("output")
+    kd = utils.KerasDirectory(fake_dataset, utils.make_model)
+    kd.write_links(output_directory=str(out_dir))
+
+    # Because we always read through the chips dictionary in the same order,
+    # the output files are deterministic. We now check that they exist.
+    for i, chip in enumerate(fake_dataset.chips.values()):
+        f = str(out_dir) + "/all/" + str(i) + "/" + os.path.basename(chip.filepath)
+        is_file = os.path.isfile(f)
+        assert is_file
+
+
+def test_KerasDirectory_set_root():
+    TYPES = (
+        # Normal cases
+        (SetType.ALL, "all"),
+        (SetType.QUERY, "query"),
+        (SetType.TEST, "test"),
+        (SetType.TRAIN, "train"),
+        # Not SetTypes, should return "all"
+        (None, "all"),
+    )
+
+    for set_type, answer in TYPES:
+        fcd = FakeChipDataset({}, set_type)
+        kd = utils.KerasDirectory(fcd, None)
+        assert kd.root == answer
+
+    # Lists of chips should be ok too, but they return "all"
+    kd = utils.KerasDirectory([], None)
+    assert kd.root == "all"

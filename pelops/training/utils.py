@@ -1,4 +1,8 @@
 from pelops.datasets.chip import ChipDataset
+from pelops.utils import SetType
+import os
+import os.path
+
 
 
 def attributes_to_classes(chip_dataset, value_extractor):
@@ -105,3 +109,94 @@ def make_model_color(chip):
     (make_val, model_val) = make_model(chip)
     (color_val,) = color(chip)
     return (make_val, model_val, color_val)
+
+
+class KerasDirectory(object):
+    def __init__(self, chip_dataset, value_extractor):
+        """ Takes a ChipDataset and hard links the files to custom defined
+        class directories.
+
+        Args:
+            chip_dataset: A ChipDataset, or other iterable of Chips
+            value_extractor: A callable that takes a chip and returns a tuple
+                representing the attributes in that chip that you care about.
+                For example, you might write a function to return the make and
+                model, or maybe color.
+        """
+        # Set up internal variables
+        self.__chip_dataset = chip_dataset
+        self.__value_extractor = value_extractor
+
+        # Class setup functions
+        self.__set_root_dir()
+
+        # Set up the class to index mapping
+        self.__class_to_index = attributes_to_classes(
+            self.__chip_dataset,
+            self.__value_extractor,
+        )
+
+
+    def __set_root_dir(self):
+        """ Set the root directory for the classes based on the SetType.
+
+        If self.__chip_dataset.set_type exists, it will be used to
+        set the root directory name, otherwise it will default to
+        "all".
+
+        The final directory will be:
+
+        output_directory / root / class_number / image
+        """
+        ROOTMAP = {
+            SetType.ALL.value: "all",
+            SetType.QUERY.value: "query",
+            SetType.TEST.value: "test",
+            SetType.TRAIN.value: "train",
+        }
+
+        # We write a train, test, query, or all directory as the root depending
+        # on the ChipDataset.
+        self.root = "all"
+        try:
+            set_type = self.__chip_dataset.set_type
+        except AttributeError:
+            return
+
+        try:
+            key = set_type.value
+        except AttributeError:
+            return
+
+        try:
+            self.root = ROOTMAP[set_type.value]
+        except KeyError:
+            return
+
+    def write_links(self, output_directory, root=None):
+        """ Writes links to a directory.
+
+        The final directory will be:
+
+        output_directory / root / class_number / image
+
+        Where root is set by self.__set_root_dir() and is based on
+        the SetType, but you can reset it by passing in root.
+
+        Args:
+
+        """
+        # Override root with self.root if not set
+        if root is None:
+            root = self.root
+
+        # Link chips
+        for chip in self.__chip_dataset:
+            src = chip.filepath
+            filename = os.path.basename(src)
+            chip_class = self.__value_extractor(chip)
+            chip_index = self.__class_to_index[chip_class]
+            dest_dir = output_directory + "/" + root + "/" + str(chip_index) + "/"
+
+            os.makedirs(dest_dir, exist_ok=True)
+            os.link(src=src, dst=dest_dir + filename)
