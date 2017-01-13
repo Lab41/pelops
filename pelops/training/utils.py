@@ -5,65 +5,51 @@ import os
 import os.path
 
 
-def attributes_to_classes(chip_dataset, chip_tuplizer):
+def attributes_to_classes(chip_dataset, chip_key_maker):
     """Extract a set of attributes from a set of Chips and uses them to make
     unique classses.
 
-    The chip_tuplizer is a function (or other callable) with the following
+    The chip_key_maker is a function (or other callable) with the following
     signature:
 
-        chip_tuplizer(chip) -> hashable tuple
+        chip_key_maker(chip) -> string
 
-    It returns a tuple derived from the chip. All chips that output the same
-    tuple will be considered as part of the same class for training, where
-    "sameness" is determined by hashing the tuple. An example tuplizer might do
-    the following:
+    It returns a string derived from the chip. All chips that output the same
+    string will be considered as part of the same class for training. An
+    example key_maker might do the following:
 
-        chip_tuplizer(chip) -> (make, model)
+        chip_key_maker(chip) -> "honda_civic"
 
-    The tuples will be sorted first before an index is assigned, so that the
-    first tuple alphabetically will have index 0. This increases the
+    The strings will be sorted first before an index is assigned, so that the
+    first string alphabetically will have index 0. This increases the
     reproducibility of the dictionary as only changes to the number of classes,
     not to the chips, will change the dictionary.
 
     Args:
         chip_dataset: A ChipDataset, or other iterable of Chips
-        chip_tuplizer: A function that takes a chip and returns a hashable
-            tuple derived from the chip.
+        chip_key_maker: A function that takes a chip and returns a string
+            derived from the chip.
 
     Returns:
-        dict: a dictionary mapping the output of chip_tuplizer(chip) to a
+        dict: a dictionary mapping the output of chip_key_maker(chip) to a
             class number.
     """
     # First we get all the keys
-    keys = []
+    keys = set()
     for chip in chip_dataset:
         # Get the class from the specified attributes
-        key = chip_tuplizer(chip)
-        keys.append(key)
+        key = chip_key_maker(chip)
+        keys.add(key)
 
-    # Then we make the class_to_index dictionary with sorted keys, so that the
-    # first key alphabetically will have class index 0. This makes the
-    # class_to_index dictionary more repeatable. We use a sorting function that
-    # replaces all Nones with the empty string, as Nones are not orderable.
-    def sorter(tup):
-        out = []
-        for item in tup:
-            if item is None:
-                out.append("")
-            else:
-                out.append(item)
-
-        return out
-
-    sorted_keys = sorted(set(keys), key=sorter)
-    class_to_index = {key: i for i, key in enumerate(sorted_keys)}
+    class_to_index = {}
+    for index, key in enumerate(sorted(keys)):
+        class_to_index[key] = index
 
     return class_to_index
 
 
-def tuplize_make_model(chip):
-    """ Given a chip, return make and model tuple.
+def key_make_model(chip):
+    """ Given a chip, return make and model string.
 
     Make and model are extracted from chip.misc using the keys "make" and
     "model". If they are missing it returns None for that value. If misc
@@ -73,87 +59,87 @@ def tuplize_make_model(chip):
         chip: A chip named tuple
 
     Returns:
-        tuple: (make, model) from the chip. None may be returned for one of the
-            positions (or both) if it is missing in the chip.
+        string: "make_model" from the chip. The string "None" may be returned
+            for one of the positions (or both) if it is missing in the chip.
     """
     # Ensure we have a misc dictionary
     try:
         misc = chip.misc
     except AttributeError:
-        return (None, None)
+        return "None_None"
 
     # Get the make and model
     try:
-        make = misc.get("make", None)
-        model = misc.get("model", None)
+        make = str(misc.get("make", None))
+        model = str(misc.get("model", None))
     except AttributeError:
-        return (None, None)
+        return "None_None"
 
-    return (make, model)
+    return "_".join((make, model))
 
 
-def tuplize_color(chip):
-    """ Given a chip, returns the color as a single element tuple.
+def key_color(chip):
+    """ Given a chip, returns the color as a string.
 
     Color is extracted from chip.misc using the key "color". If it is missing
-    or misc is not a dictionary, (None,) is returned.
+    or misc is not a dictionary, str(None) is returned
 
     Args:
         chip: A chip named tuple
 
     Returns:
-        tuple: (color,) from the chip. (None,) if not defined, or misc is
-        missing.
+        string: color from the chip. str(None) if not defined, or misc is
+            missing.
     """
     # Ensure we have a misc dictionary
     try:
         misc = chip.misc
     except AttributeError:
-        return (None,)
+        return str(None)
 
     # Get the make and model
     try:
         color = misc.get("color", None)
     except AttributeError:
-        return (None,)
+        return str(None)
 
-    return (color,)
+    return str(color)
 
 
-def tuplize_make_model_color(chip):
-    """ Given a chip, returns the make, model, and color tuple.
+def key_make_model_color(chip):
+    """ Given a chip, returns the make, model, and color as a string.
 
     Color is extracted from chip.misc using the keys "make, "model", and
-    "color". If misc missing or not a dictionary, (None, None, None) is returned.
+    "color". If misc missing or not a dictionary, "None_None_None" is returned.
 
     Args:
         chip: A chip named tuple
 
     Returns:
-        tuple: (make, model, color) from the chip. None may be returned for one
-            of the positions (or any number of them) if it is missing in the
-            chip.
+        string: "make_model_color" from the chip. str(None) may be returned for
+            one of the positions (or any number of them) if it is missing in
+            the chip.
     """
-    (make_val, model_val) = tuplize_make_model(chip)
-    (color_val,) = tuplize_color(chip)
-    return (make_val, model_val, color_val)
+    make_model = key_make_model(chip)
+    color = key_color(chip)
+    return "_".join((make_model, color))
 
 
 class KerasDirectory(object):
-    def __init__(self, chip_dataset, chip_tuplizer):
+    def __init__(self, chip_dataset, chip_key_maker):
         """ Takes a ChipDataset and hard links the files to custom defined
         class directories.
 
         Args:
             chip_dataset: A ChipDataset, or other iterable of Chips
-            chip_tuplizer: A callable that takes a chip and returns a tuple
+            chip_key_maker: A callable that takes a chip and returns a string
                 representing the attributes in that chip that you care about.
                 For example, you might write a function to return the make and
-                model, or maybe color.
+                model, or color.
         """
         # Set up internal variables
         self.__chip_dataset = chip_dataset
-        self.__chip_tuplizer = chip_tuplizer
+        self.__chip_key_maker = chip_key_maker
 
         # Class setup functions
         self.__set_root_dir()
@@ -161,8 +147,9 @@ class KerasDirectory(object):
         # Set up the class to index mapping
         self.__class_to_index = attributes_to_classes(
             self.__chip_dataset,
-            self.__chip_tuplizer,
+            self.__chip_key_maker,
         )
+        print(self.__class_to_index)
 
     def __set_root_dir(self):
         """ Set the root directory for the classes based on the SetType.
@@ -236,7 +223,7 @@ class KerasDirectory(object):
         for chip in self.__chip_dataset:
             src = chip.filepath
             filename = os.path.basename(src)
-            chip_class = self.__chip_tuplizer(chip)
+            chip_class = self.__chip_key_maker(chip)
             chip_index = self.__class_to_index[chip_class]
             dest_dir = os.path.join(output_directory, root, str(chip_index))
 
@@ -254,10 +241,4 @@ class KerasDirectory(object):
         """
         full_path = os.path.join(output_directory, filename)
         with open(full_path, "w") as open_file:
-            # We must convert the tuple keys, ("honda", "civic") for example,
-            # to pure strings, which will look like:
-            #
-            #     "('honda', 'civic')"
-            #
-            modified_dict = {str(k): v for k, v in self.__class_to_index.items()}
-            json.dump(modified_dict, open_file, indent=2)
+            json.dump(self.__class_to_index, open_file, indent=2)

@@ -45,12 +45,12 @@ def make_model_color_classes():
 def test_attributes_to_classes(make_model_color_classes):
     chips_and_answers = make_model_color_classes
 
-    # The tuplizer function, and the indices from the answer namedtuple
+    # The keyr function, and the indices from the answer namedtuple
     # corresponding to what is returned by the function
     function_and_indices = (
-        (utils.tuplize_make_model, [0, 1]),
-        (utils.tuplize_color, [2]),
-        (utils.tuplize_make_model_color, [0, 1, 2]),
+        (utils.key_make_model, [0, 1]),
+        (utils.key_color, [2]),
+        (utils.key_make_model_color, [0, 1, 2]),
     )
 
     for chips, answers in chips_and_answers:
@@ -63,9 +63,10 @@ def test_attributes_to_classes(make_model_color_classes):
             for a in answers:
                 temp_tup = []
                 for i in indices:
-                    temp_tup.append(a[i])
+                    temp_tup.append(str(a[i]))
 
-                answer.append(tuple(temp_tup))
+                ans_str = "_".join(temp_tup)
+                answer.append(ans_str)
 
             answer = set(answer)
 
@@ -111,21 +112,24 @@ def chips_and_answers():
     return chips_and_answers
 
 
-def test_tuplize_make_model(chips_and_answers):
+def test_key_make_model(chips_and_answers):
     for chip, answer in chips_and_answers:
-        real_answer = (answer.make, answer.model)
-        assert utils.tuplize_make_model(chip) == real_answer
+        ans = (str(answer.make), str(answer.model))
+        real_answer = "_".join(ans)
+        assert utils.key_make_model(chip) == real_answer
 
 
-def test_tuplize_color(chips_and_answers):
+def test_key_color(chips_and_answers):
     for chip, answer in chips_and_answers:
-        real_answer = (answer.color,)
-        assert utils.tuplize_color(chip) == real_answer
+        real_answer = str(answer.color)
+        assert utils.key_color(chip) == real_answer
 
 
-def test_tuplize_make_model_color(chips_and_answers):
+def test_key_make_model_color(chips_and_answers):
     for chip, answer in chips_and_answers:
-        assert utils.tuplize_make_model_color(chip) == answer
+        ans = (str(answer.make), str(answer.model), str(answer.color))
+        real_answer = "_".join(ans)
+        assert utils.key_make_model_color(chip) == real_answer
 
 
 # A fake ChipDataset
@@ -143,16 +147,19 @@ class FakeChipDataset(object):
 @pytest.fixture()
 def fake_dataset(tmpdir):
     MAKE_MODELS = (
-        ("1.jpg", "honda", "civic"),
-        ("2.jpg", "toyota", "corolla"),
+        ("honda", "civic"),
+        ("toyota", "corolla"),
     )
 
+    # File names must start at 0 and increment by 1. They must be assigned to
+    # the tuples after the tuples have been sorted alphabetically.
     chips = {}
-    for name, make, model in MAKE_MODELS:
+    for i, (make, model) in enumerate(sorted(MAKE_MODELS)):
+        name = str(i) + ".jpg"
         fn = tmpdir.join(name)
-        fn.write("")
+        fn.write("FAKE IMAGE")
         chip = Chip(str(fn), None, None, None, {"make": make, "model": model})
-        chips[name] = chip
+        chips[i] = chip
 
     return FakeChipDataset(chips, None)
 
@@ -160,14 +167,16 @@ def fake_dataset(tmpdir):
 def test_KerasDirectory_write_links(tmpdir, fake_dataset):
     # Link the files into the tmp directory
     out_dir = tmpdir.mkdir("output")
-    kd = utils.KerasDirectory(fake_dataset, utils.tuplize_make_model)
+    kd = utils.KerasDirectory(fake_dataset, utils.key_make_model)
     kd.write_links(output_directory=out_dir.strpath)
 
     # Because we always read through the chips dictionary in the same order,
     # the output files are deterministic. We now check that they exist.
-    for i, chip in enumerate(fake_dataset.chips.values()):
+    sorted_keys = sorted(fake_dataset.chips.keys())
+    for key in sorted_keys:
+        chip = fake_dataset.chips[key]
         file_basename = os.path.basename(chip.filepath)
-        test_file = os.path.join(out_dir.strpath, "all", str(i), file_basename)
+        test_file = os.path.join(out_dir.strpath, "all", str(key), file_basename)
         is_file = os.path.isfile(test_file)
         assert is_file
 
@@ -180,7 +189,7 @@ def test_KerasDirectory_write_links(tmpdir, fake_dataset):
 def test_KerasDirectory_write_map(tmpdir, fake_dataset):
     # Write a map file
     out_dir = tmpdir.mkdir("json")
-    kd = utils.KerasDirectory(fake_dataset, utils.tuplize_make_model)
+    kd = utils.KerasDirectory(fake_dataset, utils.key_make_model)
     kd.write_map(output_directory=out_dir.strpath)
 
     # Check that it is a file
@@ -189,11 +198,12 @@ def test_KerasDirectory_write_map(tmpdir, fake_dataset):
     assert is_file
 
     # Check that the contents are correct
-    CONT = {"('toyota', 'corolla')": 1, "('honda', 'civic')": 0}
+    CONT = {"toyota_corolla": 1, "honda_civic": 0}
     with open(map_file, 'r') as json_file:
         reloaded_string = json.load(json_file)
 
-    assert reloaded_string == CONT
+    for key, val in reloaded_string.items():
+        assert CONT[key] == val
 
 
 def test_KerasDirectory_set_root():
