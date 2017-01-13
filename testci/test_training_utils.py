@@ -4,6 +4,7 @@ from collections import namedtuple
 from itertools import product, combinations_with_replacement
 from pelops.datasets.chip import Chip
 from pelops.utils import SetType
+import json
 import os.path
 import pelops.training.utils as utils
 
@@ -160,15 +161,39 @@ def test_KerasDirectory_write_links(tmpdir, fake_dataset):
     # Link the files into the tmp directory
     out_dir = tmpdir.mkdir("output")
     kd = utils.KerasDirectory(fake_dataset, utils.tuplize_make_model)
-    kd.write_links(output_directory=str(out_dir))
+    kd.write_links(output_directory=out_dir.strpath)
 
     # Because we always read through the chips dictionary in the same order,
     # the output files are deterministic. We now check that they exist.
     for i, chip in enumerate(fake_dataset.chips.values()):
         file_basename = os.path.basename(chip.filepath)
-        test_file = os.path.join(str(out_dir), "all", str(i), file_basename)
+        test_file = os.path.join(out_dir.strpath, "all", str(i), file_basename)
         is_file = os.path.isfile(test_file)
         assert is_file
+
+    # We also write out a key -> index map
+    map_file = os.path.join(out_dir.strpath, "all", "class_to_index_map.json")
+    is_file = os.path.isfile(map_file)
+    assert is_file
+
+
+def test_KerasDirectory_write_map(tmpdir, fake_dataset):
+    # Write a map file
+    out_dir = tmpdir.mkdir("json")
+    kd = utils.KerasDirectory(fake_dataset, utils.tuplize_make_model)
+    kd.write_map(output_directory=out_dir.strpath)
+
+    # Check that it is a file
+    map_file = os.path.join(out_dir.strpath, "class_to_index_map.json")
+    is_file = os.path.isfile(map_file)
+    assert is_file
+
+    # Check that the contents are correct
+    CONT = {"('toyota', 'corolla')": 1, "('honda', 'civic')": 0}
+    with open(map_file, 'r') as json_file:
+        reloaded_string = json.load(json_file)
+
+    assert reloaded_string == CONT
 
 
 def test_KerasDirectory_set_root():

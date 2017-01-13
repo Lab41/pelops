@@ -1,8 +1,8 @@
 from pelops.datasets.chip import ChipDataset
 from pelops.utils import SetType
+import json
 import os
 import os.path
-
 
 
 def attributes_to_classes(chip_dataset, chip_tuplizer):
@@ -146,7 +146,6 @@ class KerasDirectory(object):
             self.__chip_tuplizer,
         )
 
-
     def __set_root_dir(self):
         """ Set the root directory for the classes based on the SetType.
 
@@ -183,7 +182,7 @@ class KerasDirectory(object):
         except KeyError:
             return
 
-    def write_links(self, output_directory, root=None):
+    def write_links(self, output_directory, root=None, write_map=True):
         """ Writes links to a directory.
 
         The final directory will be:
@@ -202,10 +201,18 @@ class KerasDirectory(object):
                 "test", "train", "query", and "all" depending on the `SetType`
                 of the `chip_dataset`. If you would like no directory, use a
                 blank string "".
+            write_map (bool, defaults to True): If true, writes a JSON file of
+                the self.__class_to_index map.
         """
         # Override root with self.root if not set
         if root is None:
             root = self.root
+
+        # Write a Class to number map JSON
+        if write_map:
+            map_dir = os.path.join(output_directory, root)
+            os.makedirs(map_dir, exist_ok=True)
+            self.write_map(map_dir)
 
         # Link chips
         for chip in self.__chip_dataset:
@@ -218,3 +225,21 @@ class KerasDirectory(object):
             os.makedirs(dest_dir, exist_ok=True)
             dst = os.path.join(dest_dir, filename)
             os.link(src=src, dst=dst)
+
+    def write_map(self, output_directory, filename="class_to_index_map.json"):
+        """Write the class_to_index map to a JSON file.
+
+        Args:
+            output_directory (str): The location to write the map to.
+            filename (str, defaults to class_to_index_map.json): the filename
+                to save the JSON file to.
+        """
+        full_path = os.path.join(output_directory, filename)
+        with open(full_path, "w") as open_file:
+            # We must convert the tuple keys, ("honda", "civic") for example,
+            # to pure strings, which will look like:
+            #
+            #     "('honda', 'civic')"
+            #
+            modified_dict = {str(k): v for k, v in self.__class_to_index.items()}
+            json.dump(modified_dict, open_file, indent=2)
