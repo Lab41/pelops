@@ -43,7 +43,7 @@ class DGCarsDataset(chip.ChipDataset):
 
         # create chip objects based on the names listed in the files
         for dg_chip in utils.read_json(name_filepath):
-            filepath = os.path.join(self.dataset_path, dg_chip["filename"])
+            filepath = os.path.normpath(os.path.join(self.dataset_path, dg_chip["filename"]))
             car_id = None
             cam_id = None
             time = None
