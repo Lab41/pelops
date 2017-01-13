@@ -21,6 +21,11 @@ def attributes_to_classes(chip_dataset, chip_tuplizer):
 
         chip_tuplizer(chip) -> (make, model)
 
+    The tuples will be sorted first before an index is assigned, so that the
+    first tuple alphabetically will have index 0. This increases the
+    reproducibility of the dictionary as only changes to the number of classes,
+    not to the chips, will change the dictionary.
+
     Args:
         chip_dataset: A ChipDataset, or other iterable of Chips
         chip_tuplizer: A function that takes a chip and returns a hashable
@@ -30,16 +35,29 @@ def attributes_to_classes(chip_dataset, chip_tuplizer):
         dict: a dictionary mapping the output of chip_tuplizer(chip) to a
             class number.
     """
-    class_to_index = {}
-    current_index = 0
+    # First we get all the keys
+    keys = []
     for chip in chip_dataset:
         # Get the class from the specified attributes
         key = chip_tuplizer(chip)
+        keys.append(key)
 
-        # If the key is new, add it to our dictionaries
-        if key not in class_to_index:
-            class_to_index[key] = current_index
-            current_index += 1
+    # Then we make the class_to_index dictionary with sorted keys, so that the
+    # first key alphabetically will have class index 0. This makes the
+    # class_to_index dictionary more repeatable. We use a sorting function that
+    # replaces all Nones with the empty string, as Nones are not orderable.
+    def sorter(tup):
+        out = []
+        for item in tup:
+            if item is None:
+                out.append("")
+            else:
+                out.append(item)
+
+        return out
+
+    sorted_keys = sorted(set(keys), key=sorter)
+    class_to_index = {key: i for i, key in enumerate(sorted_keys)}
 
     return class_to_index
 
