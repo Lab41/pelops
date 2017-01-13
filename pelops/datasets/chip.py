@@ -37,8 +37,8 @@ class ChipDataset(metaclass = abc.ABCMeta):
             self.chips_by_car_id = collections.defaultdict(list)
             for chip_key, chip in self.chips.items():
                 self.chips_by_car_id[chip.car_id].append(chip_key)
-        return [self.chips[chip_key] for chip_key in self.chips_by_car_id[car_id]]        
-    
+        return [self.chips[chip_key] for chip_key in self.chips_by_car_id[car_id]]
+
     def get_all_chips_by_car_id_camera_id(self, car_id, cam_id):
         output = []
         for chip in self.get_all_chips_by_car_id(car_id):
@@ -51,7 +51,7 @@ class ChipDataset(metaclass = abc.ABCMeta):
             self.chips_by_cam_id = collections.defaultdict(list)
             for chip_key, chip in self.chips.items():
                 self.chips_by_cam_id[chip.cam_id].append(chip_key)
-                
+
         return [self.chips[chip_key] for chip_key in self.chips_by_cam_id[cam_id]]
 
     def get_distinct_cams_by_car_id(self, car_id):
@@ -85,9 +85,9 @@ class ChipDataset(metaclass = abc.ABCMeta):
 
 
 # chip_id is the filepath
-Chip = collections.namedtuple("Chip", 
+Chip = collections.namedtuple("Chip",
     ["filepath",
-     "car_id", 
-     "cam_id", 
+     "car_id",
+     "cam_id",
      "time",
      "misc"])
