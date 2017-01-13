@@ -5,6 +5,18 @@ import os
 import os.path
 
 
+def tuple_to_string(tup):
+    """Convert a tuple (or other iterable, we are not picky) to a string.
+
+    Args:
+        tup (tuple): An iterable full of items on which str() works.
+
+    Returns:
+        str: A string of all elements of the tuple, joined with underscores.
+    """
+    return "_".join(str(i) for i in tup)
+
+
 def attributes_to_classes(chip_dataset, chip_key_maker):
     """Extract a set of attributes from a set of Chips and uses them to make
     unique classses.
@@ -62,20 +74,15 @@ def key_make_model(chip):
         string: "make_model" from the chip. The string "None" may be returned
             for one of the positions (or both) if it is missing in the chip.
     """
+    output = [None, None]
     # Ensure we have a misc dictionary
-    try:
+    if hasattr(chip, "misc"):
         misc = chip.misc
-    except AttributeError:
-        return "None_None"
+        if hasattr(misc, "get"):
+            output[0] = misc.get("make", None)
+            output[1] = misc.get("model", None)
 
-    # Get the make and model
-    try:
-        make = str(misc.get("make", None))
-        model = str(misc.get("model", None))
-    except AttributeError:
-        return "None_None"
-
-    return "_".join((make, model))
+    return tuple_to_string(output)
 
 
 def key_color(chip):
@@ -88,22 +95,18 @@ def key_color(chip):
         chip: A chip named tuple
 
     Returns:
-        string: color from the chip. str(None) if not defined, or misc is
+        str: color from the chip. str(None) if not defined, or misc is
             missing.
     """
+    output = [None]
     # Ensure we have a misc dictionary
-    try:
+    if hasattr(chip, "misc"):
         misc = chip.misc
-    except AttributeError:
-        return str(None)
+        # Get the make and model
+        if hasattr(misc, "get"):
+            output[0] = misc.get("color", None)
 
-    # Get the make and model
-    try:
-        color = misc.get("color", None)
-    except AttributeError:
-        return str(None)
-
-    return str(color)
+    return tuple_to_string(output)
 
 
 def key_make_model_color(chip):
@@ -116,7 +119,7 @@ def key_make_model_color(chip):
         chip: A chip named tuple
 
     Returns:
-        string: "make_model_color" from the chip. str(None) may be returned for
+        str: "make_model_color" from the chip. str(None) may be returned for
             one of the positions (or any number of them) if it is missing in
             the chip.
     """

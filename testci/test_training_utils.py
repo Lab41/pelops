@@ -9,6 +9,17 @@ import os.path
 import pelops.training.utils as utils
 
 
+def test_tuple_to_string():
+    TUPLES = (
+        ((None,), "None"),
+        ((None, "Thing"), "None_Thing"),
+        ((1, 2), "1_2"),
+        (("Thing",), "Thing"),
+    )
+    for tup, answer in TUPLES:
+        assert utils.tuple_to_string(tup) == answer
+
+
 @pytest.fixture(scope="session")
 def make_model_color_classes():
     MAKES = ("Honda", "Toyota", None,)
@@ -63,9 +74,9 @@ def test_attributes_to_classes(make_model_color_classes):
             for a in answers:
                 temp_tup = []
                 for i in indices:
-                    temp_tup.append(str(a[i]))
+                    temp_tup.append(a[i])
 
-                ans_str = "_".join(temp_tup)
+                ans_str = utils.tuple_to_string(temp_tup)
                 answer.append(ans_str)
 
             answer = set(answer)
@@ -114,21 +125,20 @@ def chips_and_answers():
 
 def test_key_make_model(chips_and_answers):
     for chip, answer in chips_and_answers:
-        ans = (str(answer.make), str(answer.model))
-        real_answer = "_".join(ans)
+        ans = (answer.make, answer.model)
+        real_answer = utils.tuple_to_string(ans)
         assert utils.key_make_model(chip) == real_answer
 
 
 def test_key_color(chips_and_answers):
     for chip, answer in chips_and_answers:
-        real_answer = str(answer.color)
+        real_answer = utils.tuple_to_string([answer.color])
         assert utils.key_color(chip) == real_answer
 
 
 def test_key_make_model_color(chips_and_answers):
     for chip, answer in chips_and_answers:
-        ans = (str(answer.make), str(answer.model), str(answer.color))
-        real_answer = "_".join(ans)
+        real_answer = utils.tuple_to_string(answer)
         assert utils.key_make_model_color(chip) == real_answer
 
 
