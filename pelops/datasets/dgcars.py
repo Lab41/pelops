@@ -40,18 +40,14 @@ class DGCarsDataset(chip.ChipDataset):
             utils.SetType.TEST.value: self.__filepaths.test_list,
             utils.SetType.TRAIN.value: self.__filepaths.train_list,
         }.get(self.set_type, self.__filepaths.all_list)
-        print("NAME FILE")
-        print(name_filepath)
 
         # create chip objects based on the names listed in the files
-        with open(name_filepath, "r") as open_file:
-            for line in open_file:
-                dg_chip = json.loads(line)
-                filepath = os.path.join(self.dataset_path, dg_chip["filename"])
-                car_id = None
-                cam_id = None
-                time = None
-                misc = dg_chip
-                current_chip = chip.Chip(filepath, car_id, cam_id, time, misc)
+        for dg_chip in utils.read_json(name_filepath):
+            filepath = os.path.join(self.dataset_path, dg_chip["filename"])
+            car_id = None
+            cam_id = None
+            time = None
+            misc = dg_chip
+            current_chip = chip.Chip(filepath, car_id, cam_id, time, misc)
 
-                self.chips[filepath] = current_chip
+            self.chips[filepath] = current_chip
