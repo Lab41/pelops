@@ -1,4 +1,5 @@
-from collections import namedtuple
+from collections import namedtuple, deque
+from enum import Enum
 import logging
 
 import numpy as np
@@ -8,6 +9,10 @@ import cv2
 Frame = namedtuple('Frame', ['filename', 'frame_number', 'img_data'])
 ExtractedChip = namedtuple('ExtractedChip', ['filename', 'frame_number', 'x', 'y', 'w', 'h', 'img_data'])
 logger = logging.getLogger('Chipper')
+
+class Methods(Enum):
+    OPENCV=1
+    BACKGROUND_SUB=2
 
 
 class FrameProducer(object):
@@ -39,26 +44,50 @@ class Chipper(object):
                  mask_modifier=None,
                  box_expander=None,
                  kernel_size=(7, 7),
-                 threshold=30):
+                 threshold=30,
+                 chipping_method=Methods.BACKGROUND_SUB):
         self.frame_producer = frame_producer
         self.fgbg = cv2.createBackgroundSubtractorMOG2()
         self.mask_modifier = mask_modifier
         self.box_expander = box_expander
         self.kernel_size = kernel_size
         self.threshold = threshold
+        self.chipping_method = chipping_method
 
     def __iter__(self):
+        if self.chipping_method == Methods.BACKGROUND_SUB:
+            last_N_frames = deque()
+            N = 10
+
         for frame in self.frame_producer:
             extracted_chips = []
             img_data = frame.img_data
             original_img_data = np.copy(frame.img_data)
-            fg_mask = self.fgbg.apply(img_data)
-            fg_mask = self.mask_modifier(fg_mask)
-            img_data = cv2.bitwise_and(img_data, img_data, mask=fg_mask)
 
-            gray = cv2.cvtColor(img_data, cv2.COLOR_BGR2GRAY)
-            gray = cv2.GaussianBlur(gray, self.kernel_size, 0)
-            ret, th1 = cv2.threshold(gray, self.threshold, 255, cv2.THRESH_BINARY)
+            if self.chipping_method == Methods.OPENCV:
+                fg_mask = self.fgbg.apply(img_data)
+                if self.mask_modifier:
+                    fg_mask = self.mask_modifier(fg_mask)
+                img_data = cv2.bitwise_and(img_data, img_data, mask=fg_mask)
+                difference_image = cv2.cvtColor(img_data, cv2.COLOR_BGR2GRAY)
+            else:
+                gray = cv2.cvtColor(img_data, cv2.COLOR_BGR2GRAY)
+                if self.mask_modifier:
+                    gray = self.mask_modifier(gray)
+
+                if len(last_N_frames) < N:
+                    last_N_frames.append(gray)
+                    continue
+                else:
+                    background_image = np.median(last_N_frames, axis=0)
+                    background_image = np.array(background_image, dtype=np.uint8)
+                    difference_image = cv2.absdiff(background_image, gray)
+
+                    _ = last_N_frames.popleft()
+                    last_N_frames.append(gray)
+
+            blurred_diff_image = cv2.GaussianBlur(difference_image, self.kernel_size, 0)
+            ret, th1 = cv2.threshold(blurred_diff_image, self.threshold, 255, cv2.THRESH_BINARY)
             _, contours, hierarchy = cv2.findContours(th1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
                 if cv2.contourArea(cnt) < 125:
