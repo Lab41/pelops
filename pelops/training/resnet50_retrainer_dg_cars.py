@@ -52,6 +52,7 @@ for chip in data_train:
     x_train.append(img_arr)
     if i > 15000:
         break
+    i = i + 1
 
 x_train = np.array(x_train)
 
