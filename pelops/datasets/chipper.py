@@ -29,7 +29,7 @@ class FrameProducer(object):
 
     def __iter__(self):
         for filename in self.file_list:
-            logger.info('Staring file: %s'%filename)
+            logger.info('Staring file: {}'.format(filename))
             self.vid = imageio.get_reader(self.open_func(filename), self.decoder)
             self.vid_metadata = self.vid.get_meta_data()
             self.step_size = int(self.vid_metadata['fps']/self.desired_framerate)
