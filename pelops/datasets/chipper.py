@@ -47,7 +47,7 @@ class Chipper(object):
                  threshold=30,
                  chipping_method=Methods.BACKGROUND_SUB):
         self.frame_producer = frame_producer
-        self.fgbg = cv2.createBackgroundSubtractorMOG2()
+        self.fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
         self.mask_modifier = mask_modifier
         self.box_expander = box_expander
         self.kernel_size = kernel_size
@@ -87,7 +87,7 @@ class Chipper(object):
                     last_N_frames.append(gray)
 
             blurred_diff_image = cv2.GaussianBlur(difference_image, self.kernel_size, 0)
-            ret, th1 = cv2.threshold(blurred_diff_image, self.threshold, 255, cv2.THRESH_BINARY)
+            _, th1 = cv2.threshold(blurred_diff_image, self.threshold, 255, cv2.THRESH_BINARY)
             _, contours, hierarchy = cv2.findContours(th1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
                 if cv2.contourArea(cnt) < 125:
@@ -131,9 +131,9 @@ def main():
 
     chipper = Chipper(fp)
     count = 0
-    for chip in chipper:
-        count +=1
-    logger.warn('Total Chips: %s'%count)
+    for _ in chipper:
+        count += 1
+    logger.warn('Total Chips: {}'.format(count))
 
 if __name__ == '__main__':
     main()
