@@ -66,7 +66,7 @@ def test_cosine():
     assert(abs(out - 0.63837193721375185) < 0.0000001)
 
 
-def test_euclidian():
+def test_euclidean():
     a = [1, 2, 3, 4, 5, 6, 7]
     b = [10, 20, 30, 40, 11, 9, 2.7]
     out = analysis.comp_euclid(a, b)
