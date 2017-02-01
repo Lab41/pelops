@@ -2,10 +2,13 @@ import cProfile
 import datetime
 import enum
 import json
+import logging
 import os
 import random
 import re
 import time
+import sys
+
 
 class SetType(enum.Enum):
     """ Types of set, i.e. training set
@@ -14,6 +17,14 @@ class SetType(enum.Enum):
     QUERY = 1
     TEST = 2
     TRAIN = 3
+
+
+def setup_custom_logger(name):
+    """ Setup a custom logger that will output to the console
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    return logger
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
