@@ -6,9 +6,10 @@ import numpy as np
 import imageio
 import cv2
 
-Frame = namedtuple('Frame', ['filename', 'frame_number', 'img_data'])
-ExtractedChip = namedtuple('ExtractedChip', ['filename', 'frame_number', 'x', 'y', 'w', 'h', 'img_data'])
+Frame = namedtuple('Frame', ['filename', 'frame_number', 'img_data', 'timestamp'])
+ExtractedChip = namedtuple('ExtractedChip', ['filename', 'frame_number', 'x', 'y', 'w', 'h', 'img_data', 'timestamp'])
 logger = logging.getLogger('Chipper')
+
 
 class Methods(Enum):
     OPENCV=1
@@ -34,7 +35,7 @@ class FrameProducer(object):
             self.vid_metadata = self.vid.get_meta_data()
             self.step_size = int(self.vid_metadata['fps']/self.desired_framerate)
             for frame_number in range(0, self.vid.get_length(), self.step_size):
-                yield Frame(filename, frame_number, self.vid.get_data(frame_number))
+                yield Frame(filename, frame_number, self.vid.get_data(frame_number), None)
         raise StopIteration()
 
 
@@ -101,7 +102,9 @@ class Chipper(object):
                                    y=y,
                                    w=w,
                                    h=h,
-                                   img_data=np.copy(original_img_data[y:y+h, x:x+w]))
+                                   img_data=np.copy(original_img_data[y:y+h, x:x+w]),
+                                   timestamp=None,
+                                   )
                 extracted_chips.append(ec)
             yield extracted_chips
         raise StopIteration()
