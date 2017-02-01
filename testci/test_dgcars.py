@@ -66,7 +66,7 @@ def test_dgcars_chips_len(dgcars):
     classes = dgcars[0]
     answer_chips = dgcars[1]
     # check that self.chips has been created, is not empty, and has the right
-    # number of etries
+    # number of entries
     for key, cls in classes.items():
         ans = answer_chips[key]
         assert len(cls.chips) == len(ans)
