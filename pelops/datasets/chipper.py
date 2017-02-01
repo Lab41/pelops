@@ -1,6 +1,8 @@
 from collections import namedtuple, deque
 from enum import Enum
 import logging
+import os.path
+import datetime as dt
 
 import numpy as np
 import imageio
@@ -35,8 +37,32 @@ class FrameProducer(object):
             self.vid_metadata = self.vid.get_meta_data()
             self.step_size = int(self.vid_metadata['fps']/self.desired_framerate)
             for frame_number in range(0, self.vid.get_length(), self.step_size):
-                yield Frame(filename, frame_number, self.vid.get_data(frame_number), None)
+                timestamp = self.__get_frame_time(filename, frame_number)
+                yield Frame(filename, frame_number, self.vid.get_data(frame_number), timestamp)
         raise StopIteration()
+
+    def __get_frame_time(self, filename, frame_number):
+        # Get the number of seconds relative to the start of the video
+        fps = self.vid_metadata['fps']
+        seconds_from_start = frame_number / fps
+        frame_delta = dt.timedelta(seconds=seconds_from_start)
+
+        # Get the time from the file name, and the offset from that time as well
+        # File names look like:
+        #
+        # /foo/bar/baz_20151001T223412-00600-01200.mp4
+        #
+        # Where '20151001T223412' is the date and time, and '00600' is the
+        # offset from that time in seconds. The first video starts at the
+        # correct time and has an offset of '00000'. Other videos after that
+        # have offsets (normally in multiples of 10 minutes).
+        base = os.path.basename(filename)
+        tmp_str = base.split('_')[-1]
+        time_str, start_second, _ = tmp_str.split('-')
+        time = dt.datetime.strptime(time_str, "%Y%m%dT%H%M%S")
+        time_delta = dt.timedelta(seconds=int(start_second))
+
+        return time + time_delta + frame_delta
 
 
 class Chipper(object):
@@ -103,7 +129,7 @@ class Chipper(object):
                                    w=w,
                                    h=h,
                                    img_data=np.copy(original_img_data[y:y+h, x:x+w]),
-                                   timestamp=None,
+                                   timestamp=frame.timestamp,
                                    )
                 extracted_chips.append(ec)
             yield extracted_chips
