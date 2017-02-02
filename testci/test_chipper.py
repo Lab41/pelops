@@ -3,11 +3,8 @@ import pytest
 import datetime as dt
 
 # OpenCV is *VERY* hard to install in CircleCI, so if we don't have it, skip these tests
-try:
-    cv2 = pytest.importorskip("cv2")
-    from pelops.datasets.chipper import FrameProducer
-except ImportError:
-    pass
+cv2 = pytest.importorskip("cv2")  # Skip all tests if not found
+from pelops.datasets.chipper import FrameProducer
 
 
 @pytest.fixture
