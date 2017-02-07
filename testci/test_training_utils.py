@@ -56,7 +56,7 @@ def make_model_color_classes():
 def test_attributes_to_classes(make_model_color_classes):
     chips_and_answers = make_model_color_classes
 
-    # The keyr function, and the indices from the answer namedtuple
+    # The key function, and the indices from the answer namedtuple
     # corresponding to what is returned by the function
     function_and_indices = (
         (utils.key_make_model, [0, 1]),

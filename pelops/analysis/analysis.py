@@ -5,15 +5,15 @@ from scipy.spatial.distance import cosine, euclidean
 
 # compute cosine distance
 # 0 -> things are closer
-# 1 -> things are far
+# 1 -> things are farther
 def comp_cosine(cam1_feat, cam2_feat):
     retval = 1 - cosine(cam1_feat, cam2_feat)
     return (retval)
 
 
-# compute euclidian distance
+# compute Euclidean distance
 # 0 -> things are closer
-# + -> thins are far
+# + -> things are farther
 def comp_euclid(cam1_feat, cam2_feat):
     retval = abs(euclidean(cam1_feat, cam2_feat))
     return (retval)
@@ -21,7 +21,7 @@ def comp_euclid(cam1_feat, cam2_feat):
 
 # do the comparisons between chips
 # cam1 - listing of chips seen at cam1
-# cam2 - listing of chips seen at cam1
+# cam2 - listing of chips seen at cam2
 # comparison - function to compare 2 vectors should return small things
 #              when comparison is close, large otherwise
 # verbose - return more info if true
