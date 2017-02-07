@@ -79,7 +79,7 @@ class CompcarDataset(chip.ChipDataset):
             car_id = int(car_id) + 1
             # make contains only the make of the car and occasionally contains whitespaces after
             make = model_matrix[0][0].strip()
-            # correct instance when make is mispelled that affects the model
+            # correct instance when make is misspelled that affects the model
             if make == "Zoyte":
                 make = "Zotye"
             # model sometimes contains both make and model, so ensure that model only contains model
@@ -87,7 +87,7 @@ class CompcarDataset(chip.ChipDataset):
             model = make_and_model.replace(make, "").strip()
             # model_id contains the model id used in the web
             model_id = int(model_matrix[2][0][0])
-            # correct instance when make is mispelled
+            # correct instance when make is misspelled
             if make == "BWM":
                 make = "BMW"
             self.__model_map[car_id] = [make, model, model_id]
