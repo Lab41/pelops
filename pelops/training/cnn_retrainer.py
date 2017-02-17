@@ -347,7 +347,7 @@ def main(args):
     score = top_model.evaluate(
         x=val_features,
         y=val_labels,
-        batch_size=val_generator.batch_size,
+        batch_size=val_features.shape[0] # same as val_generator.batch_size
     )
 
     const.logger.info("{}: {}".format(
@@ -439,8 +439,8 @@ def main(args):
     )
 
     const.logger.info("{}: {}".format(
-        model.metrics_names[1],
-        score[1]
+        model.metrics_names[const.index_accuracy],
+        score[const.index_accuracy]
     ))
 
 # =============================================================================
