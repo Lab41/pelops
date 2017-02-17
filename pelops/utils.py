@@ -7,7 +7,6 @@ import os
 import random
 import re
 import time
-import sys
 
 
 class SetType(enum.Enum):
