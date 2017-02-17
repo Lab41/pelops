@@ -24,6 +24,16 @@ def setup_custom_logger(name):
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
+    # create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create a console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    # create a file handler
+    file_handler = logging.FileHandler("./log_{}".format(name))
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
     return logger
 
 
