@@ -5,14 +5,13 @@ import logging
 import numpy as np
 import os
 import random
-import sys
 import tempfile
 import tensorflow as tf
 
 from keras.applications.imagenet_utils import preprocess_input
 from keras.applications.resnet50 import ResNet50
 from keras.callbacks import ModelCheckpoint
-from keras.models import Model, Sequential, load_model, save_model                              
+from keras.models import Model, Sequential                         
 from keras.layers import Dense, Dropout, Flatten, Input, Reshape            
 from keras.preprocessing import image
 
@@ -179,10 +178,6 @@ def main(args):
         # metrics_name's indexes
         const.index_accuracy = 1
 
-    # initialize random number generator 
-    np.random.seed(const.seed)
-    random.seed(const.seed)
-
     # -------------------------------------------------------------------------
     # 1. load the data
     # -------------------------------------------------------------------------
@@ -326,6 +321,16 @@ def main(args):
 
     top_model.save_weights(__get_weights_filepath("classifier"))
 
+    """
+    const.logger.debug("top_model.summary():")
+    const.logger.debug(top_model.summary())
+    """
+
+    const.logger.debug("classifier weights:")
+    count = 0
+    for layer in top_model.layers:
+        count = count + 1
+        const.logger.debug("count {}: layer {}: weight {}".format(count, layer, layer.get_weights()))
 
     # -------------------------------------------------------------------------
     # 9. evaluate the classifier model
@@ -365,7 +370,6 @@ def main(args):
 
     const.logger.info("=" * 80 + "\n11. add classifier on top of conv == combined")
 
-    top_model = load_model("./top_model.h5")
     model = Model(input=model.input, output=top_model(model.output))
 
     # -------------------------------------------------------------------------
@@ -394,6 +398,12 @@ def main(args):
 
     const.logger.info("=" * 80 + "\n13. train combined using data")
 
+    const.logger.debug("classifier weights after combined with conv and before training")
+    count = 0
+    for layer in top_model.layers[-3:]:
+        count = count + 1
+        print("count {}: layer {}: weight {}".format(count, layer, layer.get_weights()))
+
     model.fit_generator(
         generator=train_generator,
         samples_per_epoch=train_generator.batch_size,
@@ -404,7 +414,16 @@ def main(args):
         verbose=2
     )
 
+    const.logger.debug("classifier weights after combined with conv and after training")
+    count = 0
+    for layer in top_model.layers[-3:]:
+        count = count + 1
+        print("count {}: layer {}: weight {}".format(count, layer, layer.get_weights()))
+
     model.save_weights(__get_weights_filepath("combined"))
+
+    const.logger.info("model.summary():")
+    const.logger.info(model.summary())
 
     # -------------------------------------------------------------------------
     # 15. evaluate the combined model
