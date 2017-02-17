@@ -90,7 +90,6 @@ def __load_features(feature_filepath):
     return np.load(open(feature_filepath, "rb"))
 
 def __create_checkpoints(which_model):
-    # TODO: something is wrong with this
     checkpoint_dirpath = "./checkpoints/"
     const.logger.info("create a checkpoint directory to store saved checkpoints: {}".format(checkpoint_dirpath))
     if not os.path.exists(checkpoint_dirpath):
@@ -98,12 +97,13 @@ def __create_checkpoints(which_model):
 
     checkpoint_filepath = \
         checkpoint_dirpath + \
-        "{}_{}_features_".format(const.dataset_type, which_model) + \
-        "{epoch:02d}.npy"
+        "{}_{}_best_checkpoint_".format(const.dataset_type, which_model) + \
+        "{epoch:02d}_{acc:.4f}.npy"
 
+    # TODO: it cannot monitor val_acc
     checkpoint = ModelCheckpoint(
         filepath=checkpoint_filepath, 
-        monitor="val_acc", 
+        monitor="acc", 
         save_best_only=True, 
         mode="max",
         save_weights_only=False,
@@ -130,6 +130,22 @@ def __create_generator_from_features(features, generator):
             x = features[i * batch_size: (i+1) * batch_size]
             y = labels[i * batch_size: (i+1) * batch_size]
             yield x, y
+
+def __get_weights_filepath(which_model):
+    weight_dirpath = "./weights/"
+    const.logger.info("create a weights directory to store saved weights: {}".format(weight_dirpath))
+    if not os.path.exists(weight_dirpath):
+        os.makedirs(weight_dirpath)
+
+    time_now = datetime.datetime.now().strftime("%Y%m%d_%H_%M_%S")
+    weight_filepath = weight_dirpath + "{}_{}_weights_{}.npy".format(
+        const.dataset_type,
+        which_model,
+        time_now
+    )
+
+    const.logger.info("save weights to {}".format(weight_filepath))
+    return weight_filepath
 
 # =============================================================================
 # Main
@@ -303,9 +319,11 @@ def main(args):
         generator=__create_generator_from_features(train_features, train_generator),
         samples_per_epoch=train_generator.batch_size,
         nb_epoch=const.nb_epoch,
-        #callbacks_list=callbacks_list,
+        callbacks=callbacks_list,
         verbose=2
     )
+
+    top_model.save_weights(__get_weights_filepath("classifier"))
 
     # -------------------------------------------------------------------------
     # 9. evaluate the classifier model
@@ -360,7 +378,15 @@ def main(args):
     )
 
     # -------------------------------------------------------------------------
-    # 13. train the combined model
+    # 13. create checkpoints to save classifier model's  weights
+    # -------------------------------------------------------------------------
+
+    const.logger.info("=" * 80 + "\n7. create checkpoints to save classifier's weights")
+
+    callbacks_list = __create_checkpoints("combined")
+
+    # -------------------------------------------------------------------------
+    # 14. train the combined model
     # -------------------------------------------------------------------------
 
     const.logger.info("=" * 80 + "\n13. train combined using data")
@@ -369,12 +395,14 @@ def main(args):
         generator=train_generator,
         samples_per_epoch=train_generator.batch_size,
         nb_epoch=const.nb_epoch, 
-        #callbacks=callbacks_list,
+        callbacks=callbacks_list,
         verbose=2
     )
 
+    model.save_weights(__get_weights_filepath("combined"))
+
     # -------------------------------------------------------------------------
-    # 14. evaluate the combined model
+    # 15. evaluate the combined model
     # -------------------------------------------------------------------------
 
     const.logger.info("=" * 80 + "\n14. evaluate combined")
