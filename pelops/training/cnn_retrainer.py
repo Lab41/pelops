@@ -356,21 +356,21 @@ def main(args):
     ))
 
     # -------------------------------------------------------------------------
-    # 10. set the convolutional model to trainable
+    # 10. combine the convolutional model and classifier model
+    # -------------------------------------------------------------------------
+
+    const.logger.info("=" * 80 + "\n11. add classifier on top of conv == combined")
+
+    model = Model(input=model.input, output=top_model(model.output))
+
+    # -------------------------------------------------------------------------
+    # 11. set the convolutional model to trainable
     # -------------------------------------------------------------------------
 
     const.logger.info("=" * 80 + "\n10. unfreeze conv")
 
     for layer in model.layers: 
         layer.trainable=True
-
-    # -------------------------------------------------------------------------
-    # 11. combine the convolutional model and classifier model
-    # -------------------------------------------------------------------------
-
-    const.logger.info("=" * 80 + "\n11. add classifier on top of conv == combined")
-
-    model = Model(input=model.input, output=top_model(model.output))
 
     # -------------------------------------------------------------------------
     # 12. compile the combined model
@@ -400,7 +400,7 @@ def main(args):
 
     const.logger.debug("classifier weights after combined with conv and before training")
     count = 0
-    for layer in top_model.layers[-3:]:
+    for layer in model.layers[-3:]:
         count = count + 1
         print("count {}: layer {}: weight {}".format(count, layer, layer.get_weights()))
 
@@ -416,14 +416,16 @@ def main(args):
 
     const.logger.debug("classifier weights after combined with conv and after training")
     count = 0
-    for layer in top_model.layers[-3:]:
+    for layer in model.layers[-3:]:
         count = count + 1
         print("count {}: layer {}: weight {}".format(count, layer, layer.get_weights()))
 
     model.save_weights(__get_weights_filepath("combined"))
 
+    """
     const.logger.info("model.summary():")
     const.logger.info(model.summary())
+    """
 
     # -------------------------------------------------------------------------
     # 15. evaluate the combined model
