@@ -12,7 +12,7 @@ import tensorflow as tf
 from keras.applications.imagenet_utils import preprocess_input
 from keras.applications.resnet50 import ResNet50
 from keras.callbacks import ModelCheckpoint
-from keras.models import Model, Sequential                              
+from keras.models import Model, Sequential, load_model, save_model                              
 from keras.layers import Dense, Dropout, Flatten, Input, Reshape            
 from keras.preprocessing import image
 
@@ -98,12 +98,11 @@ def __create_checkpoints(which_model):
     checkpoint_filepath = \
         checkpoint_dirpath + \
         "{}_{}_best_checkpoint_".format(const.dataset_type, which_model) + \
-        "{epoch:02d}_{acc:.4f}.npy"
+        "{epoch:02d}_{val_acc:.4f}.npy"
 
-    # TODO: it cannot monitor val_acc
     checkpoint = ModelCheckpoint(
         filepath=checkpoint_filepath, 
-        monitor="acc", 
+        monitor="val_acc", 
         save_best_only=True, 
         mode="max",
         save_weights_only=False,
@@ -320,10 +319,13 @@ def main(args):
         samples_per_epoch=train_generator.batch_size,
         nb_epoch=const.nb_epoch,
         callbacks=callbacks_list,
+        validation_data=__create_generator_from_features(val_features, val_generator),
+        nb_val_samples=val_generator.batch_size,
         verbose=2
     )
 
     top_model.save_weights(__get_weights_filepath("classifier"))
+
 
     # -------------------------------------------------------------------------
     # 9. evaluate the classifier model
@@ -363,6 +365,7 @@ def main(args):
 
     const.logger.info("=" * 80 + "\n11. add classifier on top of conv == combined")
 
+    top_model = load_model("./top_model.h5")
     model = Model(input=model.input, output=top_model(model.output))
 
     # -------------------------------------------------------------------------
@@ -396,6 +399,8 @@ def main(args):
         samples_per_epoch=train_generator.batch_size,
         nb_epoch=const.nb_epoch, 
         callbacks=callbacks_list,
+        validation_data=val_generator,
+        nb_val_samples=val_generator.nb_sample,
         verbose=2
     )
 
