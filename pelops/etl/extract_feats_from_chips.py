@@ -19,8 +19,7 @@ def load_image(img_path, resizex=224, resizey=224):
 def load_array(img_arr, resizex=224, resizey=224):
     img = PIL_Image.fromarray(img_arr)
     img = img.convert('RGB')
-    # TODO: Check to see if we need to support some sort of smart interpolation here
-    img = img.resize((224,224))
+    img = img.resize((224,224), PIL_Image.BICUBIC)
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
