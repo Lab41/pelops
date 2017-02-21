@@ -102,7 +102,7 @@ def key_color(chip):
     # Ensure we have a misc dictionary
     if hasattr(chip, "misc"):
         misc = chip.misc
-        # Get the make and model
+        # Get the color
         if hasattr(misc, "get"):
             output[0] = misc.get("color", None)
 
@@ -232,7 +232,7 @@ class KerasDirectory(object):
 
             os.makedirs(dest_dir, exist_ok=True)
             dst = os.path.join(dest_dir, filename)
-            os.link(src=src, dst=dst)
+            os.symlink(src=src, dst=dst)
 
     def write_map(self, output_directory, filename="class_to_index_map.json"):
         """Write the class_to_index map to a JSON file.

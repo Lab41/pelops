@@ -2,10 +2,12 @@ import cProfile
 import datetime
 import enum
 import json
+import logging
 import os
 import random
 import re
 import time
+
 
 class SetType(enum.Enum):
     """ Types of set, i.e. training set
@@ -15,7 +17,7 @@ class SetType(enum.Enum):
     TEST = 2
     TRAIN = 3
 
-
+    
 def get_session(gpu_fraction=0.3):
     import tensorflow as tf # Shadow import for testing
     """
@@ -35,6 +37,25 @@ def get_session(gpu_fraction=0.3):
             gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
     else:
         return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
+      
+def setup_custom_logger(name):
+    """ Setup a custom logger that will output to the console
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    # create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create a console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    # create a file handler
+    file_handler = logging.FileHandler("./log_{}".format(name))
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
+
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):
     """ Determine how far through the list to find the value.
