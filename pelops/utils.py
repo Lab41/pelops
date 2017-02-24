@@ -17,7 +17,28 @@ class SetType(enum.Enum):
     TEST = 2
     TRAIN = 3
 
+    
+def get_session(gpu_fraction=0.3):
+    import tensorflow as tf # Shadow import for testing
+    """
+    Helper function to ensure that Keras only uses some fraction of the memory
+    Args:
+        gpu_fraction: Fraction of the GPU memory to use
 
+    Returns:
+        A tensorflow session to be passed into tensorflow_backend.set_session
+    """
+
+    num_threads = os.environ.get('OMP_NUM_THREADS')
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_fraction)
+
+    if num_threads:
+        return tf.Session(config=tf.ConfigProto(
+            gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
+    else:
+        return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
+      
 def setup_custom_logger(name):
     """ Setup a custom logger that will output to the console
     """

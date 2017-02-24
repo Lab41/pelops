@@ -37,7 +37,10 @@ class FrameProducer(object):
             self.vid_metadata = self.vid.get_meta_data()
             self.step_size = int(self.vid_metadata['fps']/self.desired_framerate)
             for frame_number in range(0, self.vid.get_length(), self.step_size):
-                timestamp = self.__get_frame_time(filename, frame_number)
+                try:
+                    timestamp = self.__get_frame_time(filename, frame_number)
+                except:
+                    timestamp = 0
                 yield Frame(filename, frame_number, self.vid.get_data(frame_number), timestamp)
         raise StopIteration()
 
@@ -70,16 +73,23 @@ class Chipper(object):
                  frame_producer,
                  mask_modifier=None,
                  box_expander=None,
+                 suppress_shadows=True,
                  kernel_size=(7, 7),
                  threshold=30,
-                 chipping_method=Methods.BACKGROUND_SUB):
+                 chipping_method=Methods.BACKGROUND_SUB,
+                 min_size=125):
         self.frame_producer = frame_producer
-        self.fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
+        self.suppress_shadows = suppress_shadows
+        if self.suppress_shadows:
+            self.fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
+        else:
+            self.fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
         self.mask_modifier = mask_modifier
         self.box_expander = box_expander
         self.kernel_size = kernel_size
         self.threshold = threshold
         self.chipping_method = chipping_method
+        self.min_size = min_size
 
     def __iter__(self):
         if self.chipping_method == Methods.BACKGROUND_SUB:
@@ -95,6 +105,8 @@ class Chipper(object):
                 fg_mask = self.fgbg.apply(img_data)
                 if self.mask_modifier:
                     fg_mask = self.mask_modifier(fg_mask)
+                if self.suppress_shadows:
+                    fg_mask[fg_mask <250] = 0
                 img_data = cv2.bitwise_and(img_data, img_data, mask=fg_mask)
                 difference_image = cv2.cvtColor(img_data, cv2.COLOR_BGR2GRAY)
             else:
@@ -117,7 +129,7 @@ class Chipper(object):
             _, th1 = cv2.threshold(blurred_diff_image, self.threshold, 255, cv2.THRESH_BINARY)
             _, contours, hierarchy = cv2.findContours(th1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
-                if cv2.contourArea(cnt) < 125:
+                if cv2.contourArea(cnt) < self.min_size:
                     continue
                 x, y, w, h = cv2.boundingRect(cnt)
                 if self.box_expander:
