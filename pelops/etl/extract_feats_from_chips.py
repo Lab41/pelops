@@ -8,18 +8,18 @@ from PIL import Image as PIL_Image
 from pelops.datasets.featuredataset import FeatureDataset
 
 
-def load_image(img_path, resizex=224, resizey=224):
-    data = image.load_img(img_path, target_size=(resizex, resizey))
+def load_image(img_path, resize_x=224, resize_y=224):
+    data = image.load_img(img_path, target_size=(resize_x, resize_y))
     x = image.img_to_array(data)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     return x
 
 
-def load_array(img_arr, resizex=224, resizey=224):
+def load_array(img_arr, resize_x=224, resize_y=224):
     img = PIL_Image.fromarray(img_arr)
     img = img.convert('RGB')
-    img = img.resize((224,224), PIL_Image.BICUBIC)
+    img = img.resize((resize_x,resize_y), PIL_Image.BICUBIC)
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
