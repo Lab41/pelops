@@ -117,7 +117,7 @@ class HOGFeatureProducer(FeatureProducer):
         """Takes a chip object and returns a feature vector of size
         self.feat_size. """
         img = PIL_Image.open(chip.filepath)
-        img = img.resize((resize_x, resize_y), PIL_Image.BICUBIC)
+        img = img.resize((256, 256), PIL_Image.BICUBIC)
         img_x, img_y = img.size
         img = color.rgb2gray(npy.array(img))
         features = hog(
