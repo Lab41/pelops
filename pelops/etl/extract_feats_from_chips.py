@@ -106,6 +106,7 @@ class FeatureProducer(object):
 from PIL import Image
 from skimage import color, data, exposure
 import numpy as np
+from skimage.feature import hog
 
 
 class HOGFeatureProducer(FeatureProducer):
