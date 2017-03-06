@@ -119,7 +119,7 @@ class HOGFeatureProducer(FeatureProducer):
         img = PIL_Image.open(chip.filepath)
         img = img.resize((256, 256), PIL_Image.BICUBIC)
         img_x, img_y = img.size
-        img = color.rgb2gray(npy.array(img))
+        img = color.rgb2gray(np.array(img))
         features = hog(
             image,
             orientations=8,
