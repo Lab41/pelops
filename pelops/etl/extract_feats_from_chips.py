@@ -4,6 +4,8 @@ from keras.applications.resnet50 import ResNet50
 from keras.models import Model
 from keras.preprocessing import image
 from PIL import Image as PIL_Image
+from skimage import color, data, exposure
+from skimage.feature import hog
 
 from pelops.datasets.featuredataset import FeatureDataset
 
@@ -84,13 +86,12 @@ class FeatureProducer(object):
         self.chip_producer = chip_producer
         self.set_variables()
 
-    def __iter__(self):
-        for chips in self.chip_producer:
-            feats = np.zeros((len(chips), self.feat_size), dtype=np.float32)
-            for i, chip in enumerate(chips):
-                preprocessed_chip = load_array(chip.img_data)
-                feats[i] = image_features(preprocessed_chip, self.model)
-            yield chips, feats
+    def return_features(self):
+        chips = self.chip_producer.chips.values()
+        feats = np.zeros((len(chips), self.feat_size), dtype=np.float32)
+        for i, chip in enumerate(chips):
+            feats[i] = self.produce_features(chip)
+        return chips, feats
 
     def produce_features(self, chip):
         """Takes a chip object and returns a feature vector of size
@@ -102,11 +103,6 @@ class FeatureProducer(object):
         needed variables. """
         self.feat_size = None  # Set this in your inherited class
         raise NotImplementedError("set_variables() is not implemented")
-
-from PIL import Image
-from skimage import color, data, exposure
-import numpy as np
-from skimage.feature import hog
 
 
 class HOGFeatureProducer(FeatureProducer):
@@ -122,9 +118,9 @@ class HOGFeatureProducer(FeatureProducer):
         img_x, img_y = img.size
         img = color.rgb2gray(np.array(img))
         features = hog(
-            image,
+            img,
             orientations=8,
-            pixels_per_cell=(img_x / 16, img_y / 16),
+            pixels_per_cell=(int(img_x / 16), int(img_y / 16)),
             cells_per_block=(16, 16),  # Normalize over the whole image
         )
         return features
