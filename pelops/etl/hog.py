@@ -8,10 +8,10 @@ from pelops.etl.feature_producer import FeatureProducer
 class HOGFeatureProducer(FeatureProducer):
 
     def __init__(self, chip_producer, image_size=(256,256), cells=(16, 16), orientations=8):
-        super().__init__(chip_producer)
         self.image_size = image_size
         self.cells = cells
         self.orientations = orientations
+        super().__init__(chip_producer)
 
     def produce_features(self, chip):
         """Takes a chip object and returns a feature vector of size
