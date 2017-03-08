@@ -1,5 +1,6 @@
-from skimage.feature import hog
+from pil import Image
 from skimage import colos
+from skimage.feature import hog
 
 from pelops.etl.feature_producer import FeatureProducer
 
@@ -15,8 +16,8 @@ class HOGFeatureProducer(FeatureProducer):
     def produce_features(self, chip):
         """Takes a chip object and returns a feature vector of size
         self.feat_size. """
-        img = PIL_Image.open(chip.filepath)
-        img = img.resize(self.image_size, PIL_Image.BICUBIC)
+        img = Image.open(chip.filepath)
+        img = img.resize(self.image_size, Image.BICUBIC)
         img_x, img_y = img.size
         img = color.rgb2gray(np.array(img))
         features = hog(
