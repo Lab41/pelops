@@ -52,7 +52,7 @@ def compcar(tmpdir):
     name_test.write(names)
 
     # Setup the class
-    instantiated_class = CompcarDataset(name_test.dirname, utils.SetType.TEST.value)
+    instantiated_class = CompcarDataset(name_test.dirname, utils.SetType.TEST)
 
     # Rename filepath
     FILE_NAMES = (

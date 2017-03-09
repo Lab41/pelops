@@ -25,7 +25,7 @@ class CompcarDataset(chip.ChipDataset):
         "color_list.mat",
     )
 
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+    def __init__(self, dataset_path, set_type=None):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()         # set self.__filepaths
         self.__extract_color_labels()  # set self.__color_map
@@ -95,9 +95,9 @@ class CompcarDataset(chip.ChipDataset):
     def __set_chips(self):
         # identify all the chips, default query to all
         all_names_filepaths = {
-            utils.SetType.ALL.value: [self.__filepaths.name_test, self.__filepaths.name_train], 
-            utils.SetType.TEST.value: [self.__filepaths.name_test],
-            utils.SetType.TRAIN.value: [self.__filepaths.name_train],
+            utils.SetType.ALL: [self.__filepaths.name_test, self.__filepaths.name_train],
+            utils.SetType.TEST: [self.__filepaths.name_test],
+            utils.SetType.TRAIN: [self.__filepaths.name_train],
         }.get(self.set_type, [self.__filepaths.name_test, self.__filepaths.name_train])
         # create chip objects based on the names listed in the files
         for name_filepath in all_names_filepaths:

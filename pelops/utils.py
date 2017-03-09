@@ -12,10 +12,10 @@ import time
 class SetType(enum.Enum):
     """ Types of set, i.e. training set
     """
-    ALL = 0
-    QUERY = 1
-    TEST = 2
-    TRAIN = 3
+    ALL = "all"
+    QUERY = "query"
+    TEST = "test"
+    TRAIN = "train"
 
     
 def get_session(gpu_fraction=0.3):
