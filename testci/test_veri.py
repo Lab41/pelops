@@ -43,7 +43,7 @@ def veri(tmpdir):
     name_test.write(names)
 
     # Setup the class
-    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TEST.value)
+    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TEST)
 
     # Rename filepath
     FILE_NAMES = (
