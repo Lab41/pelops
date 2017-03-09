@@ -17,7 +17,7 @@ dependencies:
             SCIPY_VERSION: "*"
             SCIKIT_LEARN_VERSION: "*"
             MATPLOTLIB_VERSION: "*"
-    - conda install -y menpo opencv3 hdfs3
+    - conda install -y -c menpo opencv3 hdfs3
 
 # Set up the commands to run as a test (override), as well as the commands to
 # run before (pre) and after (post).
