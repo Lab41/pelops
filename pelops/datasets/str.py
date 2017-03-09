@@ -13,7 +13,7 @@ import pelops.utils as utils
 class StrDataset(chip.ChipDataset):
     # define paths to files and directories
     filenames = collections.namedtuple(
-        "filenames", 
+        "filenames",
         [
             "dir_all"
         ]
@@ -22,7 +22,7 @@ class StrDataset(chip.ChipDataset):
         "crossCameraMatches"
     )
 
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+    def __init__(self, dataset_path, set_type=None):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()  # set self.__filepaths
         self.__set_chips()

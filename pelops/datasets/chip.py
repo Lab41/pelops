@@ -10,7 +10,7 @@ import pelops.utils as utils
 
 class DatasetFactory(object):
     @staticmethod
-    def create_dataset(dataset_type, dataset_path, set_type=utils.SetType.ALL.value):
+    def create_dataset(dataset_type, dataset_path, set_type=None):
         for cls in ChipDataset.__subclasses__():
             if cls.check_dataset_type(dataset_type):
                 return cls(dataset_path, set_type)
@@ -21,12 +21,34 @@ class DatasetFactory(object):
 
 
 class ChipDataset(metaclass = abc.ABCMeta):
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+    def __init__(self, dataset_path, set_type=None):
         self.dataset_path = dataset_path
-        self.set_type = set_type
+        self.__set_set_type(set_type)
         self.chips = dict()
         self.chips_by_cam_id = None
         self.chips_by_car_id = None
+
+    def __set_set_type(self, set_type):
+        self.set_type = None
+
+        # The Default ALL
+        if set_type is None:
+            self.set_type = utils.SetType.ALL
+
+        # If passed a SetType
+        if isinstance(set_type, utils.SetType):
+            self.set_type = set_type
+
+        # If passed a string
+        if isinstance(set_type, str):
+            set_type = set_type.lower()
+            for st in utils.SetType:
+                if set_type == st.value:
+                    self.set_type = st
+
+        if self.set_type is None:
+            raise ValueError("set_type is not a valid string or SetType enum")
+
 
     @classmethod
     def check_dataset_type(self, dataset_type):

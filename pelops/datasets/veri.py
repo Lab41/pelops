@@ -41,7 +41,7 @@ class VeriDataset(chip.ChipDataset):
         "train_label.txt"
     )
 
-    def __init__(self, dataset_path, set_type=utils.SetType.ALL.value):
+    def __init__(self, dataset_path, set_type=None):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()  # set self.__filepaths
         self.__set_chips()
@@ -64,10 +64,10 @@ class VeriDataset(chip.ChipDataset):
         # TODO: ignore images labeled as query, so we do not have to keep tabs for identical chips
         # identify all the chips
         all_names_filepaths = {
-            utils.SetType.ALL.value: [self.__filepaths.name_query, self.__filepaths.name_test, self.__filepaths.name_train],
-            utils.SetType.QUERY.value: [self.__filepaths.name_query],
-            utils.SetType.TEST.value: [self.__filepaths.name_test],
-            utils.SetType.TRAIN.value: [self.__filepaths.name_train],
+            utils.SetType.ALL: [self.__filepaths.name_query, self.__filepaths.name_test, self.__filepaths.name_train],
+            utils.SetType.QUERY: [self.__filepaths.name_query],
+            utils.SetType.TEST: [self.__filepaths.name_test],
+            utils.SetType.TRAIN: [self.__filepaths.name_train],
         }.get(self.set_type)
         # create chip objects based on the names listed in the files
         for name_filepath in all_names_filepaths:
