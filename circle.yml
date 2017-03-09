@@ -5,6 +5,7 @@ machine:
   environment:
     PATH: /home/ubuntu/miniconda3/bin:$PATH
 
+dependencies:
   override:
     # Moving to nilearn directory before performing the installation.
     - cd ~/testci
