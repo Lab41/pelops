@@ -87,13 +87,7 @@ create_new_conda_env() {
     fi
 }
 
-if [[ "$DISTRIB" == "neurodebian" ]]; then
-    create_new_venv
-    pip install nose-timer
-    bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
-    sudo apt-get install -qq python-scipy python-nose python-nibabel python-sklearn
-
-elif [[ "$DISTRIB" == "conda" ]]; then
+if [[ "$DISTRIB" == "conda" ]]; then
     create_new_conda_env
     pip install nose-timer
     # Note: nibabel is in setup.py install_requires so nibabel will
