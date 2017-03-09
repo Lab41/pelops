@@ -3,7 +3,7 @@ machine:
   python:
     version: 3.5.2
   environment:
-    PATH: /home/ubuntu/miniconda3/bin:$PATH
+    PATH: /home/ubuntu/miniconda2/bin:$PATH
 
 dependencies:
   override:
