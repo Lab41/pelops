@@ -8,8 +8,8 @@ machine:
 dependencies:
   override:
     # Moving to nilearn directory before performing the installation.
-    - cd ~/testci
-    - source continuous_integration/install.sh:
+    - cd ~/pelops
+    - source testci/install.sh:
         environment:
             DISTRIB: "conda"
             PYTHON_VERSION: "3.5"
