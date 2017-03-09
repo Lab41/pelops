@@ -2,6 +2,21 @@
 machine:
   python:
     version: 3.5.2
+  environment:
+    PATH: /home/ubuntu/miniconda3/bin:$PATH
+
+  override:
+    # Moving to nilearn directory before performing the installation.
+    - cd ~/testci
+    - source continuous_integration/install.sh:
+        environment:
+            DISTRIB: "conda"
+            PYTHON_VERSION: "3.5"
+            NUMPY_VERSION: "*"
+            SCIPY_VERSION: "*"
+            SCIKIT_LEARN_VERSION: "*"
+            MATPLOTLIB_VERSION: "*"
+    - conda install -y menpo opencv3 hdfs3
 
 # Set up the commands to run as a test (override), as well as the commands to
 # run before (pre) and after (post).
