@@ -19,7 +19,7 @@ dependencies:
             MATPLOTLIB_VERSION: "*"
     - conda install -y -c menpo opencv3 hdfs3
     - conda install -y pytest pytest-cov pillow h5py scipy
-    - pip install imageio
+    - /home/ubuntu/miniconda3/bin/pip install imageio
 
 # Set up the commands to run as a test (override), as well as the commands to
 # run before (pre) and after (post).
