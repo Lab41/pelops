@@ -18,7 +18,7 @@ dependencies:
             SCIKIT_LEARN_VERSION: "*"
             MATPLOTLIB_VERSION: "*"
     - conda install -y -c menpo opencv3 hdfs3
-    - conda install -y pytest pytest-cov pillow h5py scipy
+    - conda install -y pytest pytest-cov pillow h5py scipy scikit-image
     - /home/ubuntu/miniconda3/bin/pip install imageio
 
 # Set up the commands to run as a test (override), as well as the commands to
