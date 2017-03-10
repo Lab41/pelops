@@ -3,7 +3,7 @@ machine:
   python:
     version: 3.5.2
   environment:
-    PATH: /home/ubuntu/miniconda2/bin:$PATH
+    PATH: /home/ubuntu/miniconda3/bin:$PATH
 
 dependencies:
   override:
@@ -18,6 +18,8 @@ dependencies:
             SCIKIT_LEARN_VERSION: "*"
             MATPLOTLIB_VERSION: "*"
     - conda install -y -c menpo opencv3 hdfs3
+    - conda install -y pytest pytest-cov pillow h5py scipy
+    - /home/ubuntu/miniconda3/bin/pip install imageio
 
 # Set up the commands to run as a test (override), as well as the commands to
 # run before (pre) and after (post).
@@ -25,6 +27,6 @@ test:
   pre:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
   override:
-    - python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
+    - cd /home/ubuntu/pelops; /home/ubuntu/miniconda3/bin/python3 setup.py install; /home/ubuntu/miniconda3/bin/python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
   post:
     - bash <(curl -s https://codecov.io/bash) -t 08234947-61d0-48ea-b0f0-1c82d3f2dfd7
