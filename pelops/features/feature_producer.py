@@ -22,7 +22,7 @@ class FeatureProducer(object):
         else:
             chips = []
             chip_keys = []
-            for chip_key, chip in self.chip_producer.chips:
+            for chip_key, chip in self.chip_producer.chips.items():
                 chips.append(chip)
                 chip_keys.append(chip_key)
 
