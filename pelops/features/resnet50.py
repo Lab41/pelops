@@ -17,7 +17,7 @@ class ResNet50FeatureProducer(FeatureProducer):
         global resnet_model
         super().__init__(chip_producer)
 
-        if not resnet_model:
+        if resnet_model is None:
             # include_top needs to be True for this to work
             base_model = ResNet50(weights='imagenet', include_top=True)
             resnet_model = Model(input=base_model.input,
