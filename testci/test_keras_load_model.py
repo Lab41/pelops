@@ -10,4 +10,4 @@ def test_load_model_workaround():
     weight_filename = '/home/ubuntu/pelops/testci/small.hdf5'
     model = KerasModelFeatureProducer.load_model_workaround(
         model_filename, weight_filename)
-    assert model.layers[0].name == 'dense_1'
+    assert model.layers[0].name == 'dense_8'
