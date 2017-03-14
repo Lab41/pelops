@@ -1,9 +1,7 @@
 import numpy as np
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input
-from keras.models import load_model
-from keras.models import Model
-from keras.models import model_from_json
+from keras.models import load_model, Model, model_from_json
 
 from PIL import Image as PIL_Image
 from pelops.features.feature_producer import FeatureProducer
