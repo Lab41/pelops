@@ -27,6 +27,7 @@ def chip_producer(img_data):
     CHIPS = (
         # filepath, car_id, cam_id, time, img_data, misc
         ("car1_cam1.png", 1, 1, datetime.datetime(2016, 10, 1, 0, 1, 2, microsecond=100), img_data, {}),
+        (b"car1_cam1.png", 1, 1, datetime.datetime(2016, 10, 1, 0, 1, 2, microsecond=100), img_data, {}),
     )
 
     chip_producer = {"chips": {}}
