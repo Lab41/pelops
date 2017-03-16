@@ -15,7 +15,7 @@ class KerasModelFeatureProducer(FeatureProducer):
         if weight_filename is None:
             self.original_model = load_model(model_filename)
         else:
-            self.original_modle = load_model_workaround(model_filename,weight_filename)
+            self.original_model = self.load_model_workaround(model_filename,weight_filename)
 
         self.keras_model = Model(input=self.original_model.input,
                                  output=self.original_model.get_layer(layer_name).output)
