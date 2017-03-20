@@ -34,7 +34,7 @@ def compcar(tmpdir):
         [["Hyundai"], ["Santafe"], 961],
         [["Toyota"], ["Crown"], 1322],
     ])
-    scipy.io.savemat(model_mat.dirname + "/sv_make_model_name.mat", mdict={"sv_make_model_name": model_matrix})
+    scipy.io.savemat(os.path.join(model_mat.dirname, "sv_make_model_name.mat"), mdict={"sv_make_model_name": model_matrix})
     color_mat = tmpdir.join("color_list.mat")
     color_matrix = np.array([
         # filepath, color_num
@@ -45,7 +45,7 @@ def compcar(tmpdir):
         [["3/asdfj21348wesd.jpg"], 8],
         [["4/kjdfgjhlsdg322.jpg"], 8],
     ])
-    scipy.io.savemat(color_mat.dirname + "/color_list.mat", mdict={"color_list": color_matrix})
+    scipy.io.savemat(os.path.join(color_mat.dirname, "color_list.mat"), mdict={"color_list": color_matrix})
     names = ""
     for name, _, _, _, _ in FILE_NAMES:
         names += name + "\n"
@@ -57,12 +57,12 @@ def compcar(tmpdir):
     # Rename filepath
     FILE_NAMES = (
         # filepath, car_id, cam_id, time, misc
-        (name_test.dirname + "/image/" + "1/asdasf1123123.jpg", 1, None, None, {"color": "blue", "make": "BMW", "model": "X5", "model_id": 105}),
-        (name_test.dirname + "/image/" + "1/qjfas123189798.jpg", 1, None, None, {"color": "black", "make": "BMW", "model": "X5", "model_id": 105}),
-        (name_test.dirname + "/image/" + "2/345sdjkhjlsh33.jpg", 2, None, None, {"color": "red", "make": "Zotye", "model": "Z300", "model_id": 1035}),
-        (name_test.dirname + "/image/" + "3/werfsdbfuw3223.jpg", 3, None, None, {"color": "yellow", "make": "Hyundai", "model": "Santafe", "model_id": 961}),
-        (name_test.dirname + "/image/" + "3/asdfj21348wesd.jpg", 3, None, None, {"color": "champagne", "make": "Hyundai", "model": "Santafe", "model_id": 961}),
-        (name_test.dirname + "/image/" + "4/kjdfgjhlsdg322.jpg", 4, None, None, {"color": "champagne", "make": "Toyota", "model": "Crown", "model_id": 1322}),
+        (os.path.join(name_test.dirname, "image", "1/asdasf1123123.jpg"), 1, None, None, {"color": "blue", "make": "BMW", "model": "X5", "model_id": 105}),
+        (os.path.join(name_test.dirname, "image", "1/qjfas123189798.jpg"), 1, None, None, {"color": "black", "make": "BMW", "model": "X5", "model_id": 105}),
+        (os.path.join(name_test.dirname, "image", "2/345sdjkhjlsh33.jpg"), 2, None, None, {"color": "red", "make": "Zotye", "model": "Z300", "model_id": 1035}),
+        (os.path.join(name_test.dirname, "image", "3/werfsdbfuw3223.jpg"), 3, None, None, {"color": "yellow", "make": "Hyundai", "model": "Santafe", "model_id": 961}),
+        (os.path.join(name_test.dirname, "image", "3/asdfj21348wesd.jpg"), 3, None, None, {"color": "champagne", "make": "Hyundai", "model": "Santafe", "model_id": 961}),
+        (os.path.join(name_test.dirname, "image", "4/kjdfgjhlsdg322.jpg"), 4, None, None, {"color": "champagne", "make": "Toyota", "model": "Crown", "model_id": 1322}),
     )
     return (instantiated_class, FILE_NAMES)
 
@@ -148,7 +148,7 @@ def test_get_distinct_cams_by_car_id(compcar):
         assert test_cam == cam
 
 
-def test_get_all_cam_ids(compcar):    
+def test_get_all_cam_ids(compcar):
     """ Test CompcarDatset.get_distinct_cams_by_car_id() """
     instantiated_class = compcar[0]
     TEST_CAMS = []
