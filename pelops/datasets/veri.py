@@ -39,7 +39,7 @@ class VeriDataset(chip.ChipDataset):
         "list_type.txt",
         "gt_image.txt",
         "jk_image.txt",
-        "train_label.txt"
+        "train_label.xml"
     )
 
     def __init__(self, dataset_path, set_type=None):
@@ -121,7 +121,7 @@ class VeriDataset(chip.ChipDataset):
         splitter = img_name.split("_")
         misc = dict()
 
-        filepath = img_dir + "/" + img_name
+        filepath = os.path.join(img_dir, img_name)
         car_id = int(splitter[0])
         cam_id = int(utils.get_numeric(splitter[1]))
         time = datetime.datetime.fromtimestamp(int(splitter[2]))
