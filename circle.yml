@@ -17,7 +17,7 @@ dependencies:
             SCIPY_VERSION: "*"
             SCIKIT_LEARN_VERSION: "*"
             MATPLOTLIB_VERSION: "*"
-    - conda install -y -c menpo opencv3 hdfs3
+    - conda install -y -c opencv3 hdfs3
     - conda install -y pytest pytest-cov pillow h5py scipy scikit-image
     - /home/ubuntu/miniconda3/bin/pip install imageio
     - /home/ubuntu/miniconda3/bin/pip install tensorflow==0.12.0 git+git://github.com/fchollet/keras.git@2ad3544b017fe9c0d7a25ef0640baa52281372b5
