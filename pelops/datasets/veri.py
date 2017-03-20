@@ -1,6 +1,7 @@
 import collections
 import datetime
 import os
+import xml.etree.ElementTree
 
 import pelops.datasets.chip as chip
 import pelops.utils as utils
@@ -44,7 +45,40 @@ class VeriDataset(chip.ChipDataset):
     def __init__(self, dataset_path, set_type=None):
         super().__init__(dataset_path, set_type)
         self.__set_filepaths()  # set self.__filepaths
+        self.__color_type = {}
+        if self.set_type is utils.SetType.ALL or self.set_type is utils.SetType.TRAIN:
+            self.__build_metadata_dict()
         self.__set_chips()
+
+    def __build_metadata_dict(self):
+        """Extract car type and color from the label file."""
+        root = xml.etree.ElementTree.parse(self.__filepaths.label_train).getroot()
+
+        colors = {
+            1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
+            6: "blue", 7: "white", 8: "golden", 9: "brown", 10: "black",
+        }
+        types = {
+            1: "sedan", 2: "suv", 3: "van", 4: "hatchback", 5: "mpv",
+            6: "pickup", 7: "bus", 8: "truck", 9: "estate",
+        }
+
+        self.__color_type = {}
+        for child in root.iter("Item"):
+            # Get the IDs from the XML node
+            vehicle_id = child.attrib.get("vehicleID", None)
+
+            if vehicle_id is not None:
+                color = child.attrib.get("colorID", None)
+                vehicle = child.attrib.get("typeID", None)
+
+                try:
+                    color_id = int(color)
+                    vehicle_id = int(vehicle)
+                except ValueError:
+                    continue
+
+                self.__color_type[vehicle_id] = (colors[color_id], types[vehicle_id])
 
     def __set_filepaths(self):
         self.__filepaths = VeriDataset.filenames(
@@ -92,5 +126,9 @@ class VeriDataset(chip.ChipDataset):
         cam_id = int(utils.get_numeric(splitter[1]))
         time = datetime.datetime.fromtimestamp(int(splitter[2]))
         misc["binary"] = int(os.path.splitext(splitter[3])[0])
+
+        color, vehicle_type = self.__color_type.get(car_id, (None, None))
+        misc["color"] = color
+        misc["vehicle_type"] = vehicle_type
 
         return chip.Chip(filepath, car_id, cam_id, time, misc)
