@@ -22,8 +22,7 @@ def veri(tmpdir):
     name_query = tmpdir.join("name_query.txt")
     name_query.write("TEST")
     name_test = tmpdir.join("name_test.txt")
-    name_train = tmpdir.join("name_train.txt")
-    name_train.write("TEST")
+    name_test.write("TEST")
     tmpdir.mkdir("image_query")
     image_test = tmpdir.mkdir("image_test")
     tmpdir.mkdir("image_train")
@@ -31,7 +30,7 @@ def veri(tmpdir):
     gt_image.write("TEST")
     jk_image = tmpdir.join("jk_image.txt")
     jk_image.write("TEST")
-    train_label = tmpdir.join("train_label.txt")
+    train_label = tmpdir.join("train_label.xml")
     train_label.write("TEST")
     list_color = tmpdir.join("list_color.txt")
     list_color.write("TEST")
@@ -40,20 +39,21 @@ def veri(tmpdir):
     names = ""
     for name, _, _, _, _ in FILE_NAMES:
         names += name + "\n"
-    name_test.write(names)
+    name_train = tmpdir.join("name_train.txt")
+    name_train.write(names)
 
     # Setup the class
-    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TEST)
+    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TRAIN)
 
     # Rename filepath
     FILE_NAMES = (
         # filepath, car_id, cam_id, time, misc
-        (name_test.dirname + "/image_test/" + "0001_c001_00027065_0.jpg", 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0001_c002_00028680_0.jpg", 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0001_c003_00029105_0.jpg", 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0002_c001_00060920_1.jpg", 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1}),
-        (name_test.dirname + "/image_test/" + "0002_c002_00060935_1.jpg", 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1}),
-        (name_test.dirname + "/image_test/" + "0002_c003_00061525_1.jpg", 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1}),
+        (name_test.dirname + "/image_train/" + "0001_c001_00027065_0.jpg", 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0}),
+        (name_test.dirname + "/image_train/" + "0001_c002_00028680_0.jpg", 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0}),
+        (name_test.dirname + "/image_train/" + "0001_c003_00029105_0.jpg", 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0}),
+        (name_test.dirname + "/image_train/" + "0002_c001_00060920_1.jpg", 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1}),
+        (name_test.dirname + "/image_train/" + "0002_c002_00060935_1.jpg", 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1}),
+        (name_test.dirname + "/image_train/" + "0002_c003_00061525_1.jpg", 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1}),
     )
     return (instantiated_class, FILE_NAMES)
 
@@ -136,7 +136,7 @@ def test_get_distinct_cams_by_car_id(veri):
         assert test_cam == cam
 
 
-def test_get_all_cam_ids(veri):    
+def test_get_all_cam_ids(veri):
     """ Test VeriDataset.get_distinct_cams_by_car_id() """
     instantiated_class = veri[0]
     TEST_CAMS = [1, 2, 3]
