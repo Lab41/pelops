@@ -12,7 +12,7 @@ import pelops.utils as utils
 
 class VeriDataset(chip.ChipDataset):
     filenames = collections.namedtuple(
-        "filenames", 
+        "filenames",
         [
             "name_query",
             "name_test",
@@ -34,7 +34,7 @@ class VeriDataset(chip.ChipDataset):
         "image_query",
         "image_test",
         "image_train",
-        "list_color.txt", 
+        "list_color.txt",
         "list_type.txt",
         "gt_image.txt",
         "jk_image.txt",
@@ -47,18 +47,19 @@ class VeriDataset(chip.ChipDataset):
         self.__set_chips()
 
     def __set_filepaths(self):
-        self.__filepaths =  VeriDataset.filenames(
-            self.dataset_path + "/" + VeriDataset.filepaths.name_query,
-            self.dataset_path + "/" + VeriDataset.filepaths.name_test,
-            self.dataset_path + "/" + VeriDataset.filepaths.name_train,
-            self.dataset_path + "/" + VeriDataset.filepaths.dir_query,
-            self.dataset_path + "/" + VeriDataset.filepaths.dir_test, 
-            self.dataset_path + "/" + VeriDataset.filepaths.dir_train,
-            self.dataset_path + "/" + VeriDataset.filepaths.list_color, 
-            self.dataset_path + "/" + VeriDataset.filepaths.list_type,
-            self.dataset_path + "/" + VeriDataset.filepaths.ground_truths,
-            self.dataset_path + "/" + VeriDataset.filepaths.junk_images, 
-            self.dataset_path + "/" + VeriDataset.filepaths.label_train)
+        self.__filepaths = VeriDataset.filenames(
+            os.path.join(self.dataset_path, VeriDataset.filepaths.name_query),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.name_test),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.name_train),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.dir_query),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.dir_test),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.dir_train),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.list_color),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.list_type),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.ground_truths),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.junk_images),
+            os.path.join(self.dataset_path, VeriDataset.filepaths.label_train),
+        )
 
     def __set_chips(self):
         # TODO: ignore images labeled as query, so we do not have to keep tabs for identical chips
