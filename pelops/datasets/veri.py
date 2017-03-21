@@ -55,30 +55,27 @@ class VeriDataset(chip.ChipDataset):
         root = xml.etree.ElementTree.parse(self.__filepaths.label_train).getroot()
 
         colors = {
-            1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
+            0: None, 1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
             6: "blue", 7: "white", 8: "golden", 9: "brown", 10: "black",
         }
         types = {
-            1: "sedan", 2: "suv", 3: "van", 4: "hatchback", 5: "mpv",
+            0: None, 1: "sedan", 2: "suv", 3: "van", 4: "hatchback", 5: "mpv",
             6: "pickup", 7: "bus", 8: "truck", 9: "estate",
         }
 
         self.__color_type = {}
         for child in root.iter("Item"):
             # Get the IDs from the XML node
-            vehicle_id = child.attrib.get("vehicleID", None)
+            vehicle_id = child.attrib["vehicleID"]
+            color = child.attrib["colorID"]
+            body_type = child.attrib["typeID"]
 
-            if vehicle_id is not None:
-                color = child.attrib.get("colorID", None)
-                vehicle = child.attrib.get("typeID", None)
+            color_id = int(color)
+            body_id = int(body_type)
+            str_color = colors[color_id]
+            str_body = types[body_id]
 
-                try:
-                    color_id = int(color)
-                    vehicle_id = int(vehicle)
-                except ValueError:
-                    continue
-
-                self.__color_type[vehicle_id] = (colors[color_id], types[vehicle_id])
+            self.__color_type[vehicle_id] = (str_color, str_body)
 
     def __set_filepaths(self):
         self.__filepaths = VeriDataset.filenames(
