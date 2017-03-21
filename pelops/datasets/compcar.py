@@ -34,11 +34,11 @@ class CompcarDataset(chip.ChipDataset):
 
     def __set_filepaths(self):
         self.__filepaths = self.filenames(
-            self.dataset_path + "/" + CompcarDataset.filepaths.image_dir,
-            self.dataset_path + "/" + CompcarDataset.filepaths.name_train,
-            self.dataset_path + "/" + CompcarDataset.filepaths.name_test,
-            self.dataset_path + "/" + CompcarDataset.filepaths.model_mat,
-            self.dataset_path + "/" + CompcarDataset.filepaths.color_mat,
+            os.path.join(self.dataset_path, CompcarDataset.filepaths.image_dir),
+            os.path.join(self.dataset_path, CompcarDataset.filepaths.name_train),
+            os.path.join(self.dataset_path, CompcarDataset.filepaths.name_test),
+            os.path.join(self.dataset_path, CompcarDataset.filepaths.model_mat),
+            os.path.join(self.dataset_path, CompcarDataset.filepaths.color_mat),
         )
 
     def __extract_color_labels(self):
@@ -109,7 +109,7 @@ class CompcarDataset(chip.ChipDataset):
         splitter = img_name.split("/")
         misc = dict()
 
-        filepath = img_dir + "/" + img_name
+        filepath = os.path.join(img_dir, img_name)
         car_id = int(splitter[0])
         cam_id = None
         time = None

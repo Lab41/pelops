@@ -30,12 +30,13 @@ class StrDataset(chip.ChipDataset):
 
     def __set_filepaths(self):
         self.__filepaths = StrDataset.filenames(
-            self.dataset_path + "/" + StrDataset.filepaths.dir_all)
+            os.path.join(self.dataset_path, StrDataset.filepaths.dir_all)
+        )
 
     def __set_chips(self):
         directory = self.__filepaths.dir_all
         for file in os.listdir(directory):
-            path = directory + '/' + file
+            path = os.path.join(directory, file)
 
             # Only interested in certain files
             is_valid = os.path.isfile(path)

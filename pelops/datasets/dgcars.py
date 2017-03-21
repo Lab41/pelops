@@ -28,9 +28,9 @@ class DGCarsDataset(chip.ChipDataset):
 
     def __set_filepaths(self):
         self.__filepaths = self.filenames(
-            self.dataset_path + "/" + DGCarsDataset.filepaths.all_list,
-            self.dataset_path + "/" + DGCarsDataset.filepaths.train_list,
-            self.dataset_path + "/" + DGCarsDataset.filepaths.test_list,
+            os.path.join(self.dataset_path, DGCarsDataset.filepaths.all_list),
+            os.path.join(self.dataset_path, DGCarsDataset.filepaths.train_list),
+            os.path.join(self.dataset_path, DGCarsDataset.filepaths.test_list),
         )
 
     def __set_chips(self):
