@@ -117,7 +117,7 @@ class VeriDataset(chip.ChipDataset):
     def __create_chip(self, img_dir, img_name):
         # information about the chip resides in the chip's name
         splitter = img_name.split("_")
-        misc = dict()
+        misc = {}
 
         filepath = os.path.join(img_dir, img_name)
         car_id = int(splitter[0])
