@@ -70,12 +70,13 @@ class VeriDataset(chip.ChipDataset):
             color = child.attrib["colorID"]
             body_type = child.attrib["typeID"]
 
+            vehicle_id_int = int(vehicle_id)
             color_id = int(color)
             body_id = int(body_type)
             str_color = colors[color_id]
             str_body = types[body_id]
 
-            self.__color_type[vehicle_id] = (str_color, str_body)
+            self.__color_type[vehicle_id_int] = (str_color, str_body)
 
     def __set_filepaths(self):
         self.__filepaths = VeriDataset.filenames(
