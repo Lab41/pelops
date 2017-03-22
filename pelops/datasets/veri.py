@@ -52,7 +52,20 @@ class VeriDataset(chip.ChipDataset):
 
     def __build_metadata_dict(self):
         """Extract car type and color from the label file."""
-        root = xml.etree.ElementTree.parse(self.__filepaths.label_train).getroot()
+        try:
+            root = xml.etree.ElementTree.parse(self.__filepaths.label_train).getroot()
+        except ValueError as e:
+            URL = "https://github.com/Lab41/pelops/issues/72"
+            ERROR = (
+                str(e) + "\n\n"
+                "The label file 'train_label.xml' comes malformed from the\n"
+                "source. The first line needs to be changed to:\n"
+                "'<?xml version=\"1.0\" encoding=\"UTF-8\" ?>'\n"
+                "if it is not already.\n"
+                "See: " + URL
+            )
+            raise ValueError(ERROR)
+
 
         colors = {
             0: None, 1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
