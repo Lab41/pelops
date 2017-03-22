@@ -66,7 +66,6 @@ class VeriDataset(chip.ChipDataset):
             )
             raise ValueError(ERROR)
 
-
         colors = {
             0: None, 1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
             6: "blue", 7: "white", 8: "golden", 9: "brown", 10: "black",
@@ -121,7 +120,7 @@ class VeriDataset(chip.ChipDataset):
                 img_dir = self.__filepaths.dir_query
             elif VeriDataset.filepaths.name_test in name_filepath:
                 img_dir = self.__filepaths.dir_test
-            else: # VeriDataset.filepaths.name_train in filepath
+            else:  # VeriDataset.filepaths.name_train in filepath
                 img_dir = self.__filepaths.dir_train
             for name in open(name_filepath):
                 current_chip = self.__create_chip(img_dir, name.strip())
