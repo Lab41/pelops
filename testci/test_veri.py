@@ -11,19 +11,29 @@ def veri(tmpdir):
     # Write a file to read back
     FILE_NAMES = (
         # filepath, car_id, cam_id, time, misc
-        ("0001_c001_00027065_0.jpg", 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0}),
-        ("0001_c002_00028680_0.jpg", 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0}),
-        ("0001_c003_00029105_0.jpg", 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0}),
-        ("0002_c001_00060920_1.jpg", 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1}),
-        ("0002_c002_00060935_1.jpg", 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1}),
-        ("0002_c003_00061525_1.jpg", 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1}),
+        ("0001_c001_00027065_0.jpg", 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        ("0001_c002_00028680_0.jpg", 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        ("0001_c003_00029105_0.jpg", 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        ("0002_c001_00060920_1.jpg", 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1, "color": None, "vehicle_type": None}),
+        ("0002_c002_00060935_1.jpg", 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1, "color": None, "vehicle_type": None}),
+        ("0002_c003_00061525_1.jpg", 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1, "color": None, "vehicle_type": None}),
     )
+
+    # train_label.xml
+    TRAIN_LABEL = """<?xml version="1.0" encoding="UTF-8" ?>
+<TrainingImages Version="1.0">
+    <Items number="37778">
+        <Item imageName="0001_c001_00027065_0.jpg" vehicleID="0001" cameraID="c001" colorID="5" typeID="1" />
+        <Item imageName="0001_c002_00028680_0.jpg" vehicleID="0001" cameraID="c002" colorID="5" typeID="1" />
+        <Item imageName="0001_c003_00029105_0.jpg" vehicleID="0001" cameraID="c003" colorID="5" typeID="1" />
+    </Items>
+</TrainingImages>"""
+
     # The contents of the files do not matter, the name is enough
     name_query = tmpdir.join("name_query.txt")
     name_query.write("TEST")
     name_test = tmpdir.join("name_test.txt")
-    name_train = tmpdir.join("name_train.txt")
-    name_train.write("TEST")
+    name_test.write("TEST")
     tmpdir.mkdir("image_query")
     image_test = tmpdir.mkdir("image_test")
     tmpdir.mkdir("image_train")
@@ -31,8 +41,8 @@ def veri(tmpdir):
     gt_image.write("TEST")
     jk_image = tmpdir.join("jk_image.txt")
     jk_image.write("TEST")
-    train_label = tmpdir.join("train_label.txt")
-    train_label.write("TEST")
+    train_label = tmpdir.join("train_label.xml")
+    train_label.write(TRAIN_LABEL)
     list_color = tmpdir.join("list_color.txt")
     list_color.write("TEST")
     list_type = tmpdir.join("list_type.txt")
@@ -40,20 +50,21 @@ def veri(tmpdir):
     names = ""
     for name, _, _, _, _ in FILE_NAMES:
         names += name + "\n"
-    name_test.write(names)
+    name_train = tmpdir.join("name_train.txt")
+    name_train.write(names)
 
     # Setup the class
-    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TEST)
+    instantiated_class = VeriDataset(name_test.dirname, utils.SetType.TRAIN)
 
     # Rename filepath
     FILE_NAMES = (
         # filepath, car_id, cam_id, time, misc
-        (name_test.dirname + "/image_test/" + "0001_c001_00027065_0.jpg", 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0001_c002_00028680_0.jpg", 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0001_c003_00029105_0.jpg", 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0}),
-        (name_test.dirname + "/image_test/" + "0002_c001_00060920_1.jpg", 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1}),
-        (name_test.dirname + "/image_test/" + "0002_c002_00060935_1.jpg", 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1}),
-        (name_test.dirname + "/image_test/" + "0002_c003_00061525_1.jpg", 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1}),
+        (os.path.join(name_test.dirname, "image_train", "0001_c001_00027065_0.jpg"), 1, 1, datetime.datetime.fromtimestamp(int("00027065")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        (os.path.join(name_test.dirname, "image_train", "0001_c002_00028680_0.jpg"), 1, 2, datetime.datetime.fromtimestamp(int("00028680")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        (os.path.join(name_test.dirname, "image_train", "0001_c003_00029105_0.jpg"), 1, 3, datetime.datetime.fromtimestamp(int("00029105")), {"binary": 0, "color": "red", "vehicle_type": "sedan"}),
+        (os.path.join(name_test.dirname, "image_train", "0002_c001_00060920_1.jpg"), 2, 1, datetime.datetime.fromtimestamp(int("00060920")), {"binary": 1, "color": None, "vehicle_type": None}),
+        (os.path.join(name_test.dirname, "image_train", "0002_c002_00060935_1.jpg"), 2, 2, datetime.datetime.fromtimestamp(int("00060935")), {"binary": 1, "color": None, "vehicle_type": None}),
+        (os.path.join(name_test.dirname, "image_train", "0002_c003_00061525_1.jpg"), 2, 3, datetime.datetime.fromtimestamp(int("00061525")), {"binary": 1, "color": None, "vehicle_type": None}),
     )
     return (instantiated_class, FILE_NAMES)
 
@@ -81,6 +92,8 @@ def test_veri_chips_vals(veri):
         assert time == chip.time
         # No misc data
         assert misc["binary"] == chip.misc["binary"]
+        assert misc["color"] == chip.misc["color"]
+        assert misc["vehicle_type"] == chip.misc["vehicle_type"]
         # Filepath should be filled
         assert chip.filepath
 
@@ -136,7 +149,7 @@ def test_get_distinct_cams_by_car_id(veri):
         assert test_cam == cam
 
 
-def test_get_all_cam_ids(veri):    
+def test_get_all_cam_ids(veri):
     """ Test VeriDataset.get_distinct_cams_by_car_id() """
     instantiated_class = veri[0]
     TEST_CAMS = [1, 2, 3]
