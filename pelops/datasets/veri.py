@@ -67,13 +67,29 @@ class VeriDataset(chip.ChipDataset):
             raise ValueError(ERROR)
 
         colors = {
-            0: None, 1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
+            1: "yellow", 2: "orange", 3: "green", 4: "gray", 5: "red",
             6: "blue", 7: "white", 8: "golden", 9: "brown", 10: "black",
         }
         types = {
-            0: None, 1: "sedan", 2: "suv", 3: "van", 4: "hatchback", 5: "mpv",
-            6: "pickup", 7: "bus", 8: "truck", 9: "estate",
+            0: "unknown", 1: "sedan", 2: "suv", 3: "van", 4: "hatchback",
+            5: "mpv", 6: "pickup", 7: "bus", 8: "truck", 9: "estate",
         }
+
+        # Version 1.0 of the VeRI data has a bug where several cars are labeled
+        # as the illegal type 0:
+        #
+        # https://github.com/Lab41/pelops/issues/76
+        #
+        # These cars are actually SUVs (or, cross-overs) and hence should by
+        # type 2.
+        if root.attrib["Version"] == "1.0":
+            types[0] = "suv"
+            URL = "https://github.com/Lab41/pelops/issues/76"
+            output = (
+                "VeRI Version 1.0 found! Patching `typeID=0` to `typeID=2`.\n"
+                "See: " + URL
+            )
+            print(output)
 
         self.__color_type = {}
         for child in root.iter("Item"):
