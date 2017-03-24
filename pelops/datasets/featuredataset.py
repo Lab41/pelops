@@ -13,7 +13,10 @@ class FeatureDataset(ChipDataset):
             self.filename_lookup[chip.filepath] = chip_key
     
     def get_feats_for_chip(self, chip):
-        chip_key = self.filename_lookup[chip.filepath]
+        filepath = chip.filepath
+        if isinstance(filepath, bytes):
+            filepath = filepath.decode('utf-8')
+        chip_key = self.filename_lookup[filepath]
         return self.feats[self.chip_index_lookup[chip_key]]
     
     @staticmethod
