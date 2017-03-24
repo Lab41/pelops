@@ -2,18 +2,59 @@ import cProfile
 import datetime
 import enum
 import json
+import logging
 import os
 import random
 import re
 import time
 
+
 class SetType(enum.Enum):
     """ Types of set, i.e. training set
     """
-    ALL = 0
-    QUERY = 1
-    TEST = 2
-    TRAIN = 3
+    ALL = "all"
+    QUERY = "query"
+    TEST = "test"
+    TRAIN = "train"
+
+    
+def get_session(gpu_fraction=0.3):
+    import tensorflow as tf # Shadow import for testing
+    """
+    Helper function to ensure that Keras only uses some fraction of the memory
+    Args:
+        gpu_fraction: Fraction of the GPU memory to use
+
+    Returns:
+        A tensorflow session to be passed into tensorflow_backend.set_session
+    """
+
+    num_threads = os.environ.get('OMP_NUM_THREADS')
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_fraction)
+
+    if num_threads:
+        return tf.Session(config=tf.ConfigProto(
+            gpu_options=gpu_options, intra_op_parallelism_threads=num_threads))
+    else:
+        return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
+      
+def setup_custom_logger(name):
+    """ Setup a custom logger that will output to the console
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    # create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create a console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    # create a file handler
+    file_handler = logging.FileHandler("./log_{}".format(name))
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
 
 
 def get_index_of_tuple(list_of_tuple, index_of_tuple, value):

@@ -27,8 +27,8 @@ def chips():
     return chips
 
 @pytest.fixture
-def feature_dataset(chips):
-    OUTPUT_FNAME = '/tmp/test_featre_dataset.hdf5'
+def feature_dataset(chips, tmpdir):
+    OUTPUT_FNAME = tmpdir.join("test_feature_dataset.hdf5").strpath
     feat_data = np.random.random((len(chips), FEAT_LENGTH))
     FeatureDataset.save(OUTPUT_FNAME, list(chips.keys()), list(chips.values()), feat_data)
     return FeatureDataset(OUTPUT_FNAME)

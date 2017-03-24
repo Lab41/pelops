@@ -54,9 +54,9 @@ def dgcars(tmpdir):
 
     # Instantiate a DGCarsDataset() class
     output_classes = {
-        SetType.ALL: DGCarsDataset(tmpdir.strpath, SetType.ALL.value),
-        SetType.TRAIN: DGCarsDataset(tmpdir.strpath, SetType.TRAIN.value),
-        SetType.TEST: DGCarsDataset(tmpdir.strpath, SetType.TEST.value),
+        SetType.ALL: DGCarsDataset(tmpdir.strpath, SetType.ALL),
+        SetType.TRAIN: DGCarsDataset(tmpdir.strpath, SetType.TRAIN),
+        SetType.TEST: DGCarsDataset(tmpdir.strpath, SetType.TEST),
     }
 
     return (output_classes, output_chips)

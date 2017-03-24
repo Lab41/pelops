@@ -5,3 +5,4 @@ logger
 python-resize-image
 h5py
 imageio
+scikit-image

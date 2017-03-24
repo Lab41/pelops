@@ -29,10 +29,10 @@ def str_sa(tmpdir):
 
     # Rename filepath
     FILE_NAMES = (
-        (out_file.dirname + "/" + "match00001_cam02.png", 1, 2, None, None),
-        (out_file.dirname + "/" + "match00001_cam01_mask.png", None, None, None, None),
-        (out_file.dirname + "/" + "match00010_cam01.png", 10, 1, None, None),
-        (out_file.dirname + "/" + "match00011_cam02_mask.png", None, None, None, None)
+        (os.path.join(out_file.dirname, "match00001_cam02.png"), 1, 2, None, None),
+        (os.path.join(out_file.dirname, "match00001_cam01_mask.png"), None, None, None, None),
+        (os.path.join(out_file.dirname, "match00010_cam01.png"), 10, 1, None, None),
+        (os.path.join(out_file.dirname, "match00011_cam02_mask.png"), None, None, None, None)
     )
 
     # Filter out the files that were not read

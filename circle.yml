@@ -2,6 +2,25 @@
 machine:
   python:
     version: 3.5.2
+  environment:
+    PATH: /home/ubuntu/miniconda3/bin:$PATH
+
+dependencies:
+  override:
+    # Moving to nilearn directory before performing the installation.
+    - cd ~/pelops
+    - source testci/install.sh:
+        environment:
+            DISTRIB: "conda"
+            PYTHON_VERSION: "3.5"
+            NUMPY_VERSION: "*"
+            SCIPY_VERSION: "*"
+            SCIKIT_LEARN_VERSION: "*"
+            MATPLOTLIB_VERSION: "*"
+    - conda install -y opencv hdfs3
+    - conda install -y pytest pytest-cov pillow h5py scipy scikit-image
+    - /home/ubuntu/miniconda3/bin/pip install imageio
+    - /home/ubuntu/miniconda3/bin/pip install tensorflow==0.12.0 git+git://github.com/fchollet/keras.git@2ad3544b017fe9c0d7a25ef0640baa52281372b5
 
 # Set up the commands to run as a test (override), as well as the commands to
 # run before (pre) and after (post).
@@ -9,6 +28,6 @@ test:
   pre:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
   override:
-    - python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
+    - cd /home/ubuntu/pelops; /home/ubuntu/miniconda3/bin/python3 setup.py install; /home/ubuntu/miniconda3/bin/python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
   post:
     - bash <(curl -s https://codecov.io/bash) -t 08234947-61d0-48ea-b0f0-1c82d3f2dfd7
