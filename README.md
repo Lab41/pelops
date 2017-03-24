@@ -24,7 +24,7 @@ TODO
 # Turning Chips to Features
 1 build the docker continer
 
-  docker build -f Dockerfile.images2vecs -t i2v .
+  docker build -f docker/Dockerfile.images2vecs -t i2v .
 
 2 map folders with images and and output directory, and run..
 
