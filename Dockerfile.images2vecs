@@ -1,0 +1,27 @@
+FROM continuumio/anaconda3
+MAINTAINER dgrossman <dgrossman@iqt.org>
+
+RUN apt-get update && \
+    apt-get install -y \
+    git 
+
+# install dependencies of plugins for pelops
+RUN for file in $(find . -name "requirements.txt"); \
+    do \
+        pip install -r $file; \
+    done
+
+RUN pip install keras 
+RUN pip install tensorflow
+RUN pip install imageio
+RUN conda install -y -c conda-forge opencv
+
+ENV INDOCKERCONTAINER 1
+
+ADD . /pelops_root
+WORKDIR /pelops_root
+RUN mkdir INPUT_DIR
+RUN mkdir OUTPUT_DIR
+ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+
+CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
