@@ -3,7 +3,7 @@ MAINTAINER dgrossman <dgrossman@iqt.org>
 
 RUN apt-get update && \
     apt-get install -y \
-    git 
+    git
 
 # install dependencies of plugins for pelops
 RUN for file in $(find . -name "requirements.txt"); \
@@ -11,10 +11,11 @@ RUN for file in $(find . -name "requirements.txt"); \
         pip install -r $file; \
     done
 
-# Keras
-RUN pip install git+git://github.com/fchollet/keras.git@2ad3544b017fe9c0d7a25ef0640baa52281372b5
-# Tensorflow
-RUN pip install tensorflow==0.12.*
+# Install Python packages
+ENV TENSORFLOW_VERSION=0.12.* \
+    KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
+RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
+RUN pip install tensorflow==${TENSORFLOW_VERSION}
 RUN pip install imageio
 RUN conda install -y -c conda-forge opencv
 
