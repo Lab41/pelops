@@ -23,8 +23,9 @@ ENV INDOCKERCONTAINER 1
 
 ADD . /pelops_root
 WORKDIR /pelops_root
+ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+
 RUN mkdir INPUT_DIR
 RUN mkdir OUTPUT_DIR
-ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
 
 CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
