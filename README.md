@@ -22,13 +22,13 @@ TODO
 TODO
 
 # Turning Chips to Features
-1 build the docker continer
+1. build the docker continer
 
-  docker build -f docker/Dockerfile.images2vecs -t i2v .
+docker build -f docker/Dockerfile.images2vecs -t i2v .
 
-2 map folders with images and and output directory, and run..
+2. map folders with images and and output directory, and run.
 
-  docker run -v /folder/with/chips/:/pelops_root/INPUT_DIR -v /dir/for/output/:/pelops_root/OUTPUT_DIR i2v 
+docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR i2v 
 
 # Tests
 Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
