@@ -25,14 +25,30 @@ def img_data():
 
 
 @pytest.fixture
-def hog_features(img_data):
+def pil_image(img_data):
     img = Image.fromarray(img_data)
     img = img.convert("RGB")
     img = img.resize((256, 256), Image.BICUBIC)
-    img = color.rgb2gray(np.array(img))
+    return img
+
+
+@pytest.fixture
+def hog_features(pil_image):
+    img = color.rgb2gray(np.array(pil_image))
     features = hog(img, orientations=8, pixels_per_cell=(16, 16), cells_per_block=(16, 16))
 
     return features
+
+
+@pytest.fixture
+def color_features(pil_image):
+    hists = []
+    for channel in pil_image.split():
+        channel_array = np.array(channel)
+        values, _ = np.histogram(channel_array.flat, bins=256)
+        hists.append(values)
+
+    return np.concatenate(hists)
 
 
 @pytest.fixture
@@ -58,25 +74,28 @@ def feature_producer(chip_producer):
     return hog
 
 
-def test_features(feature_producer, chip_producer, hog_features):
+def test_features(feature_producer, chip_producer, hog_features, color_features):
     fp = feature_producer
     for _, chip in chip_producer["chips"].items():
         features = feature_producer.produce_features(chip)
-        assert len(features) == fp.cells[0] * fp.cells[1] * fp.orientations
-        assert np.array_equal(features, hog_features)
+        assert len(features) == fp.cells[0] * fp.cells[1] * fp.orientations + 3 * fp.histogram_bins_per_channel
+        total_features = np.concatenate((hog_features, color_features))
+        assert np.array_equal(features, total_features)
 
 
 def test_inputs(chip_producer):
-    pix_sizes = (32, 64, 126, 256, 512)
+    pix_sizes = (32, 64, 128, 256, 512)
     cell_counts = (1, 2, 4, 16)
     orientation_counts = (2, 4, 8, 16)
-    for pix, cell, orientation in product(pix_sizes, cell_counts, orientation_counts):
+    histogram_bins = (32, 64, 128, 256)
+    for pix, cell, orientation, histogram_bin in product(pix_sizes, cell_counts, orientation_counts, histogram_bins):
         hog = HOGFeatureProducer(
             chip_producer,
             image_size=(pix, pix),
             cells=(cell, cell),
             orientations=orientation,
+            histogram_bins_per_channel=histogram_bin,
         )
         for _, chip in chip_producer["chips"].items():
             features = hog.produce_features(chip)
-            assert len(features) == (cell**2) * orientation
+            assert len(features) == ((cell**2) * orientation) + (3 * histogram_bin)
