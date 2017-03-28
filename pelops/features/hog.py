@@ -23,13 +23,23 @@ class HOGFeatureProducer(FeatureProducer):
         img_x, img_y = img.size
 
         # Calculate histogram of each channel
-        hists = []
-        for channel in img.split():
+        channels = img.split()
+        hist_features = np.zeros(3 * self.histogram_bins_per_channel)
+
+        # We expect RGB images. If something else is passed warn the user and
+        # continue.
+        if len(channels) < 3:
+            print("Non-RBG image! Vector will be padded with -1!")
+        if len(channels) > 3:
+            print("Non-RBG image! Channels beyond the first three will be ignored!")
+            channels = channel[:3]
+
+        for i, channel in enumerate(channels):
             channel_array = np.array(channel)
             values, _ = np.histogram(channel_array.flat, bins=self.histogram_bins_per_channel)
-            hists.append(values)
-
-        hists_values = np.concatenate(hists)
+            start = i * self.histogram_bins_per_channel
+            end = (i+1) * self.histogram_bins_per_channel
+            hist_features[start:end] = values
 
         # Calculate HOG features, which require a grayscale image
         img = color.rgb2gray(np.array(img))
@@ -40,9 +50,9 @@ class HOGFeatureProducer(FeatureProducer):
             cells_per_block=self.cells,  # Normalize over the whole image
         )
 
-        return np.concatenate((features, hists_values))
+        return np.concatenate((features, hist_features))
 
     def set_variables(self):
         hog_size = self.cells[0] * self.cells[1] * self.orientations
-        hist_size = 3 * histogram_bins_per_channel
+        hist_size = 3 * self.histogram_bins_per_channel
         self.feat_size = hog_size + hist_size

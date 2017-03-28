@@ -76,9 +76,13 @@ def feature_producer(chip_producer):
 
 def test_features(feature_producer, chip_producer, hog_features, color_features):
     fp = feature_producer
+    hog_len = len(hog_features)
+    hist_len = len(color_features)
+
     for _, chip in chip_producer["chips"].items():
         features = feature_producer.produce_features(chip)
-        assert len(features) == fp.cells[0] * fp.cells[1] * fp.orientations + 3 * fp.histogram_bins_per_channel
+        assert len(features) == hog_len + hist_len
+
         total_features = np.concatenate((hog_features, color_features))
         assert np.array_equal(features, total_features)
 
