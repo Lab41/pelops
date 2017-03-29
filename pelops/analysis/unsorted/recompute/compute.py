@@ -19,6 +19,7 @@ from keras.callbacks import ReduceLROnPlateau
 from keras.callbacks import TensorBoard
 from keras.layers import Dense
 from keras.layers import GlobalAveragePooling2D
+from keras.layers.normalization import BatchNormalization
 from keras.models import load_model
 from keras.models import Model
 from keras.models import model_from_json
@@ -181,7 +182,8 @@ def do_training(training_basepath,
                 tensor_board_log_dir=None,
                 model_checkpoint_format_string=None,
                 batch_size=32,
-                verbose=1):
+                verbose=1,
+                divisor=10):
 
     # # Start the sesion
 
@@ -204,6 +206,10 @@ def do_training(training_basepath,
 
     # let's add a fully-connected my_layer
     my_layer = Dense(1024, activation='relu')(my_layer)
+
+    # brad said this would make things work better, but stuff would still be
+    # messed up.
+    my_layer = BatchNormalization()(my_layer)
 
     predictions = Dense(num_training_classes, activation='softmax')(my_layer)
 
@@ -236,7 +242,7 @@ def do_training(training_basepath,
 
     # # Train
 
-    samples_per_epoch = int(len(training_image_class_mapping) / 10)
+    samples_per_epoch = int(len(training_image_class_mapping) / divisor)
     print('sample_per_epoch:', samples_per_epoch)
 
     start = datetime.datetime.time(datetime.datetime.now())
@@ -272,7 +278,7 @@ def do_training(training_basepath,
     start = datetime.datetime.time(datetime.datetime.now())
     print('started at {0}'.format(start))
 
-    samples_per_epoch = int(len(training_image_class_mapping) / 10)
+    samples_per_epoch = int(len(training_image_class_mapping) / divisor)
 
     full_history = model.fit_generator(train_buffered_generator_mp,
                                        samples_per_epoch=samples_per_epoch,
