@@ -24,7 +24,7 @@ class HOGFeatureProducer(FeatureProducer):
 
         # Calculate histogram of each channel
         channels = img.split()
-        hist_features = np.zeros(3 * self.histogram_bins_per_channel)
+        hist_features = np.full(shape=3 * self.histogram_bins_per_channel, fill_value=-1)
 
         # We expect RGB images. If something else is passed warn the user and
         # continue.
