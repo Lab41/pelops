@@ -8,7 +8,7 @@ from pelops.features.feature_producer import FeatureProducer
 
 class HOGFeatureProducer(FeatureProducer):
 
-    def __init__(self, chip_producer, image_size=(256,256), cells=(16, 16), orientations=8, histogram_bins_per_channel=256):
+    def __init__(self, chip_producer, image_size=(224,224), cells=(16, 16), orientations=8, histogram_bins_per_channel=256):
         self.image_size = image_size
         self.cells = cells
         self.orientations = orientations

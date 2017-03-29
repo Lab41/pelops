@@ -11,7 +11,7 @@ from pelops.features.hog import HOGFeatureProducer
 
 def hog_features(img):
     img = color.rgb2gray(np.array(img))
-    features = hog(img, orientations=8, pixels_per_cell=(16, 16), cells_per_block=(16, 16))
+    features = hog(img, orientations=8, pixels_per_cell=(14, 14), cells_per_block=(16, 16))
     return features
 
 
@@ -84,7 +84,7 @@ def img_data():
         arr = data[data_id]["array"]
         img = Image.fromarray(arr)
         img = img.convert("RGB")
-        img = img.resize((256, 256), Image.BICUBIC)
+        img = img.resize((224, 224), Image.BICUBIC)
         data[data_id]["image"] = img
 
     # Calculate HOG features
