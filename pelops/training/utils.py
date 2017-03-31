@@ -3,6 +3,10 @@ from pelops.utils import SetType
 import json
 import os
 import os.path
+import numpy as np
+from keras.preprocessing import image
+from keras.applications.resnet50 import preprocess_input
+import random
 
 
 def tuple_to_string(tup):
@@ -129,6 +133,7 @@ def key_make_model_color(chip):
 
 
 class KerasDirectory(object):
+
     def __init__(self, chip_dataset, chip_key_maker):
         """ Takes a ChipDataset and hard links the files to custom defined
         class directories.
@@ -245,3 +250,116 @@ class KerasDirectory(object):
         full_path = os.path.join(output_directory, filename)
         with open(full_path, "w") as open_file:
             json.dump(self.__class_to_index, open_file, indent=2)
+
+
+def rgb2bgr(x):
+    """
+    given an array representation of an RGB image, change the image
+    into an BGR representtaion of the image
+    """
+    return(bgr2rgb(x))
+
+
+def bgr2rgb(x):
+    """
+    given an array representation of an BGR image, change the image
+    into an RGB representtaion of the image
+    """
+    y = np.zeros(x.shape)
+    B = x[:,:,0]
+    G = x[:,:,1]
+    R = x[:,:,2]
+    y[:,:,0] = R
+    y[:,:,1] = G
+    y[:,:,2] = B
+    return y
+
+# load an image from disk
+# NOTE: input assumed to be RGB
+# NOTE: output is to be BGR for resnet use.
+def load_image(img_path,
+               e_dims=False,
+               image_flip=0.5,
+               image_shift=0.10,
+               image_rotate_degrees=10,
+               image_zoom=0.1,
+               output_BGR=True):
+    """
+    WARNING this funciton should only manipulation images meant for resnet50 consumption.
+    To make it applicable for other environments remove preprocess_input.
+
+
+    Do some image manipulation
+    image input assumed to be in RGB format
+    output format default is GBR unless output_BGR is set to False
+
+    e_dims = e_dims false will output (x,y,3) sized images
+             e_domes true will output (1,x,y,3) sized images
+    image_flip = probability that image will be flipped rt to left
+    image_shift = percent of image to randomly shift up/down & right/left
+    image_rotate_degrees = rotate image randomly
+                            between [-image_rotate_degrees image_rotate_degrees]
+    image_zoom = randomly zoom image [1-image_zoom 1+image_zoom]
+    output_BGR = True -> image output will be in BGR formate RGB otherwise
+    """
+
+
+
+    img = image.load_img(img_path, target_size=(224, 224))
+    my_img = image.img_to_array(img)
+
+    if image_flip is not None:
+        if image_flip > 1 or image_flip < -1:
+            raise ValueError('|image_flip:{0}| > 1'.format(image_flip))
+        image_flip = abs(image_flip)
+        if random.random() > image_flip :
+            my_img = image.flip_axis(my_img, axis=1)
+        
+    if image_rotate_degrees is not None:
+        image_rotate_degrees = int(image_rotate_degrees)
+        
+        if image_rotate_degrees > 360:
+            image_rotate_degrees = image_rotate_degrees % 360
+            
+        my_img = image.random_rotation(my_img,
+                                       image_rotate_degrees,
+                                       row_index=0,
+                                       col_index=1,
+                                       channel_index=2)
+    if image_shift is not None:
+        if image_shift > 1 or image_shift < -1:
+            raise ValueError('|image_shift:{0}| > 1'.format(image_shift))
+        image_shift = abs(image_shift)
+
+        my_img = image.random_shift(my_img,
+                                    image_shift,
+                                    image_shift,
+                                    row_index=0,
+                                    col_index=1,
+                                    channel_index=2)
+
+    if image_zoom is not None:
+        if image_zoom > 1 or image_zoom < -1:
+            raise ValueError('|image_zoom:{0}| > 1'.format(image_zoom))
+        image_zoom = abs(image_zoom)
+        
+        low = 1-image_zoom
+        high = 1+image_zoom
+        rng = [low,high]
+        my_img = image.random_zoom(my_img,
+                                   rng,
+                                   row_index=0,
+                                   col_index=1,
+                                   channel_index=2)
+    
+    if not output_BGR:
+        my_img = bgr2rgb(my_img)
+    
+    my_img = np.expand_dims(my_img, axis=0)
+    my_img = preprocess_input(my_img)
+ 
+    if not e_dims:
+        my_img = my_img.squeeze()
+
+    return my_img
+     
