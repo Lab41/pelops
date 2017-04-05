@@ -197,3 +197,31 @@ def profilewrapper(func):
         finally:
             profile.print_stats()
     return profiler
+
+
+def get_split(key, pivots):
+    if not isinstance(pivots, list):
+        pivots = list(pivots)
+
+    pivots.sort()
+    hash_val = hash(key)%100
+    for split, pivot in enumerate(pivots):
+        if hash_val < pivot:
+            return split
+    return len(pivots)
+
+
+def train_test_key_filter(key, split="train"):
+    hash_val = get_split(key, [90])
+    split = split.lower()
+    if split == "train":
+        desired_val = 0
+    elif split == "test":
+        desired_val = 1
+    else:
+        raise ValueError('Unknown Split Type: %s'%split)
+
+    if hash_val == desired_val:
+        return True
+    else:
+        return False

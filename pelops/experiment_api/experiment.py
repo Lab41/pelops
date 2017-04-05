@@ -76,7 +76,7 @@ from pelops.datasets.featuredataset import FeatureDataset
 
 class ExperimentGenerator(object):
 
-    def __init__(self, dataset, num_cams, num_cars_per_cam, drop_percentage, seed):
+    def __init__(self, dataset, num_cams, num_cars_per_cam, drop_percentage, seed, key_filter= lambda x: True):
         # set inputs
         self.dataset = dataset
         self.num_cams = num_cams
@@ -85,9 +85,10 @@ class ExperimentGenerator(object):
         self.seed = seed
         # stuff that needs to be initialized
         random.seed(self.seed)
-        self.list_of_cameras_per_car = self.dataset.get_distinct_cams_per_car()
+        d = self.dataset.get_distinct_cams_per_car()
+        self.list_of_cameras_per_car = {k:v for (k,v) in d.items() if key_filter(k)}
         self.list_of_cameras = self.dataset.get_all_cam_ids()
-        self.list_of_cars = self.dataset.get_all_car_ids()
+        self.list_of_cars = list(filter(key_filter, self.dataset.get_all_car_ids()))
         self.valid_target_cars = None
 
     def __is_only_one_car(self):
