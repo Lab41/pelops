@@ -6,6 +6,7 @@ from pelops.experiment_api.experiment import ExperimentGenerator
 
 
 class ModelTrainer(object):
+    """Train an sklearn model using a FeatureDataset() dataset. """
 
     def __init__(
             self,
@@ -17,6 +18,23 @@ class ModelTrainer(object):
             n_train=1000,
             random_seed=1024,
     ):
+        """Set up a class for training sklearn classification models.
+
+        Agrs:
+            model: An instantiated sklearn classification model that provides
+                `.fit(X, Y)` and `.score(X, Y)`,
+            vector_combiner: A function that takes two feature vectors and
+                returns an iterable of vectors.
+            train_ds: a FeatureDataset() of data to use for training.
+            test_ds (defaults to None): a FeatureDataset() of data to use for
+                testing. May be set to None as it is only used if .score() is
+                called.
+            n_train (int, defaults to 10,000): Number of training datapoint to construct.
+            n_test (int, defaults to 1000): Number of testing datapoint to construct.
+            random_seed (int, defaults to 1024): Seed for the experiment
+                generators.
+
+        """
         # Set up Datasets and experiment generators
         self.train_ds = train_ds
         self.train_eg = None
@@ -70,9 +88,15 @@ class ModelTrainer(object):
         return X, Y
 
     def fit(self):
+        """Fit the model to the training data. Sets self.trained_model."""
         self.trained_model = self.model.fit(self.X_train, self.Y_train)
 
     def score(self):
+        """Return the score of a trained model.
+
+        You must first call .fit() or this call will fail. test_ds must be a
+        valid FeatureDataset() as well.
+        """
         if self.trained_model is not None:
             # If the test data has not be generated, generate it
             if self.X_test is None or self.Y_test is None:
@@ -86,6 +110,7 @@ class ModelTrainer(object):
         raise RuntimeWarning("model is not trained, try calling .fit()")
 
     def save(self, file_name):
+        """Save a model to a text file using pickle."""
         if self.trained_model is not None:
             with open(file_name, 'wb') as f:
                 pickle.dump(self.trained_model, f)
