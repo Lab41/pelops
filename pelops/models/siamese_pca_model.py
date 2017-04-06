@@ -1,5 +1,7 @@
+import numpy as np
+
 from keras.models import Model
-from keras.layers import Dense, Input, merge
+from keras.layers import Dense, Input, merge, Reshape, GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 
 from sklearn import decomposition
@@ -16,7 +18,13 @@ class SiamesePCAModel(PelopsModel):
 
         self.output_size = kwargs.get('pca_dim', 32)
         self.pca = decomposition.PCA(n_components=self.output_size)
-        self.pca.fit(train_exp_gen.dataset.feats)
+
+        cars = set(train_exp_gen.list_of_cars)
+        feats = []
+        for chip in train_exp_gen.dataset.chips.values():
+            if chip.car_id in cars:
+                feats.append(train_exp_gen.dataset.get_feats_for_chip(chip))
+        self.pca.fit(np.array(feats))
         kwargs['feature_transformer'] = self.pca.transform
 
         super().__init__(train_exp_gen,
@@ -30,8 +38,8 @@ class SiamesePCAModel(PelopsModel):
         processed_left = Input(shape=[self.output_size])
         processed_right = Input(shape=[self.output_size])
 
-        siamese_join = merge([processed_left, processed_right], mode='concat')
-        my_layer = Dense(self.output_size, activation='relu')(siamese_join)
+        my_layer = merge([processed_left, processed_right], mode='concat')
+        my_layer = Dense(self.output_size, activation='relu')(my_layer)
         my_layer = BatchNormalization()(my_layer)
 
         my_layer = Dense(self.output_size/2, activation='relu')(my_layer)
