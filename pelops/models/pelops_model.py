@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import numpy as np
+from keras.models import model_from_json
 
 
 class PelopsModel(metaclass=ABCMeta):
@@ -148,3 +149,27 @@ class PelopsModel(metaclass=ABCMeta):
                        nb_epoch=epochs,
                        callbacks=callbacks,
                        verbose=2)
+
+    def save(self, base_filename):
+        json_filename = base_filename + '.json'
+        weights_filename = base_filename + '.weights'
+
+        # serialize model to JSON
+        model_json = self.model.to_json()
+        with open(json_filename, 'w') as json_file:
+            json_file.write(model_json)
+
+        # serialize weights to HDF5
+        self.model.save_weights(weights_filename)
+
+    def load(self, base_filename):
+        json_filename = base_filename + '.json'
+        weights_filename = base_filename + '.weights'
+
+        # load json and create model
+        json_file = open(json_filename, 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        self.model = model_from_json(loaded_model_json)
+        # load weights into new model
+        self.model .load_weights(weights_filename)
