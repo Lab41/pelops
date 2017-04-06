@@ -19,9 +19,7 @@ class ResNet50FeatureProducer(FeatureProducer):
 
         if resnet_model is None:
             # include_top needs to be True for this to work
-            base_model = ResNet50(weights='imagenet', include_top=True)
-            resnet_model = Model(input=base_model.input,
-                      output=base_model.get_layer('flatten_1').output)
+            resnet_model = ResNet50(weights='imagenet', include_top=False)
 
         self.resnet_model = resnet_model
 
