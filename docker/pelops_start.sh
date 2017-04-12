@@ -32,4 +32,4 @@ git clone https://github.com/lab41/pelops /pelops
 pip install /pelops
 
 # Launch the notebook
-jupyter notebook --no-browser --port 8888 --ip=* --NotebookApp.token=
+jupyter notebook --no-browser --port 8888 --ip=* --NotebookApp.token= --allow-root
