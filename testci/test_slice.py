@@ -1,15 +1,13 @@
-import os
+import io
 import csv
-import shutil
 import pytest
-import tempfile
 import pelops.datasets.slice as slice
 
 
 @pytest.fixture
-def slice_env():
+def slice_env(tmpdir):
     """Setup mock STR SLiCE dataset"""
-    work_dir = tempfile.mkdtemp('_pelops_testing')
+    work_dir = tmpdir.mkdir('pelops_testing')
     truth = [
         ['% obSetIdx', ' chipIdx', ' targetID'],
         ['1', ' 1', '0'],
@@ -17,27 +15,22 @@ def slice_env():
         ['1', ' 3', '0'],
         ['2', ' 1', '1']
     ]
-    truth_file = os.path.join(work_dir, 'truth.txt')
-    with open(truth_file, 'w', newline='') as truth_hdl:
+
+    truth_file = work_dir.join('truth.txt')
+    with io.StringIO(newline='') as truth_hdl:
         csv.writer(truth_hdl).writerows(truth)
+        truth_hdl.seek(0)
+        truth_file.write(truth_hdl.read())
 
     for obset, chipid in {(row[0], row[1].strip()) for row in truth[1:]}:
-        chip_dir = os.path.join(work_dir, 'ObSet00%s_1492560663_TestDir' % obset)
-        if not os.path.isdir(chip_dir):
-            os.makedirs(chip_dir)
-        img_dir = os.path.join(chip_dir, 'images')
-        if not os.path.isdir(img_dir):
-            os.makedirs(img_dir)
-        img_file = os.path.join(img_dir, 'ObSet001-00%s.png' % chipid)
-        with open(img_file, 'w') as img_hdl:
-            pass
+        obset_dir = work_dir.join('ObSet00{}_1492560663_TestDir'.format(obset))
+        obset_dir.ensure(dir=True)
+        img_dir = obset_dir.join('images')
+        img_dir.ensure(dir=True)
+        img_file = img_dir.join('ObSet001-00{}.png'.format(chipid))
+        img_file.ensure(dir=False)
 
     yield work_dir
-
-    try:
-        shutil.rmtree(work_dir)
-    except IOError:
-        pass
 
 
 def test_slice_chip_load(slice_env):
@@ -66,6 +59,6 @@ def test_slice_chip_unk_car_id(slice_env):
 def test_slice_chip_dtg(slice_env):
     """Test that date/times encoded in filenames are processed properly."""
     slice_dataset = slice.SliceDataset(slice_env)
-    dtgs = {chip.time[:10] for chip in slice_dataset.chips.values()}
+    dtgs = {chip.time[:7] for chip in slice_dataset.chips.values()}
     assert len(dtgs) == 1
-    assert '2017-04-18' in dtgs
+    assert '2017-04' in dtgs
