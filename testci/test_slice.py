@@ -30,7 +30,7 @@ def slice_env(tmpdir):
         img_file = img_dir.join('ObSet001-00{}.png'.format(chipid))
         img_file.ensure(dir=False)
 
-    yield work_dir
+    yield work_dir.strpath
 
 
 def test_slice_chip_load(slice_env):
