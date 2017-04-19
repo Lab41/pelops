@@ -73,7 +73,7 @@ class SliceDataset(chip.ChipDataset):
                 file_info['file'],
                 car_id,
                 file_info['meta']['obSetName'],
-                datetime.datetime.fromtimestamp(float(file_info['meta']['epoch'])).isoformat(),
+                file_info['meta']['epoch'],
                 file_info['meta']
             ]
             return chip.Chip(*chip_params)
