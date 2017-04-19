@@ -1,6 +1,7 @@
 import io
 import csv
 import pytest
+import datetime
 import pelops.datasets.slice as slice
 
 
@@ -59,6 +60,5 @@ def test_slice_chip_unk_car_id(slice_env):
 def test_slice_chip_dtg(slice_env):
     """Test that date/times encoded in filenames are processed properly."""
     slice_dataset = slice.SliceDataset(slice_env)
-    dtgs = {chip.time[:7] for chip in slice_dataset.chips.values()}
+    dtgs = {datetime.datetime.fromtimestamp(float(chip.time)).isoformat() for chip in slice_dataset.chips.values()}
     assert len(dtgs) == 1
-    assert '2017-04' in dtgs
