@@ -25,9 +25,9 @@ Options:
 
 import docopt
 import numpy as np
-from resnet50 import ResNet50
+from keras.applications.resnet50 import ResNet50
 from keras.preprocessing import image
-from imagenet_utils import preprocess_input
+from keras.applications.imagenet_utils import preprocess_input
 from keras.models import Model
 import os
 import time
