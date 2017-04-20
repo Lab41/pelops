@@ -30,6 +30,9 @@ docker build -f docker/Dockerfile.images2vecs -t i2v .
 
 docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR i2v 
 
+3. Advanced, bring your own model.
+docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR -v **/folder/with/model_files/**:/pelops_root/MODEL_DIR -e MODEL='/pelops_root/**MODELFILENAME**' -e WEIGHTS='/pelops_root/**WEIGHTSFILENAME**' -e LAYER='**layernameToUseAsOutput**' i2v 
+
 # Tests
 Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
 
