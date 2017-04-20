@@ -12,10 +12,7 @@ RUN for file in $(find . -name "requirements.txt"); \
     done
 
 # Install Python packages
-ENV TENSORFLOW_VERSION=0.12.* \
-    KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
-RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
-RUN pip install tensorflow==${TENSORFLOW_VERSION}
+RUN conda install -y -c conda-forge keras=2.0.2
 RUN pip install imageio
 RUN conda install -y -c conda-forge opencv
 
@@ -27,5 +24,6 @@ ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
 
 RUN mkdir INPUT_DIR
 RUN mkdir OUTPUT_DIR
+RUN mkdir MODEL_DIR
 
-CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
+CMD ["python", "/pelops_root/etl/makeFeaturesYOURMODEL.py","./INPUT_DIR","./OUTPUT_DIR"]
