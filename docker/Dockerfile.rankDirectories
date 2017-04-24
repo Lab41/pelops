@@ -107,4 +107,4 @@ RUN mkdir INPUT_DIR2
 RUN mkdir MODEL_DIR
 RUN mkdir OUTPUT_DIR
 
-CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
+CMD ["python", "/pelops_root/etl/compareDirectory2Directory.py","./INPUT_DIR1","INPUT_DIR2","./OUTPUT_DIR"]
