@@ -77,7 +77,7 @@ import scipy.spatial
 import sys
 
 import pelops.utils as utils
-from experiment import ExperimentGenerator
+from .experiment import ExperimentGenerator
 
 
 class MetricRunner(object):

@@ -6,3 +6,11 @@ python-resize-image
 h5py
 imageio
 scikit-image
+keras
+tensorflow
+tqdm
+pytest
+hdfs3
+opencv-python
+docopt
+scikit-learn
