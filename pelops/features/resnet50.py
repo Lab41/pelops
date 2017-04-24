@@ -27,7 +27,8 @@ class ResNet50FeatureProducer(FeatureProducer):
 
     @staticmethod
     def preprocess_image(img, x_dim=224, y_dim=224):
-        img = img.resize((x_dim,y_dim), PIL_Image.BICUBIC)
+        if img.size != (x_dim, y_dim):
+            img = img.resize((x_dim,y_dim), PIL_Image.BICUBIC)
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
         x = preprocess_input(x)
