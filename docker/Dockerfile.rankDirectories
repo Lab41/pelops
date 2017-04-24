@@ -1,14 +1,87 @@
 FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu14.04
 MAINTAINER dgrossman <dgrossman@iqt.org>
 
-RUN apt-get update && \
-    apt-get install -y \
-    git wget python-pip
+# Install all OS dependencies for fully functional notebook server
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    build-essential \
+    bzip2 \
+    ca-certificates \
+    emacs \
+    git \
+    inkscape \
+    libsm6 \
+    libxrender1 \
+    locales \
+    pandoc \
+    python-dev \
+    sudo \
+    git \
+    texlive-fonts-extra \
+    texlive-fonts-recommended \
+    texlive-generic-recommended \
+    texlive-latex-base \
+    texlive-latex-extra \
+    unzip \
+    vim \
+    wget \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
-    wget --quiet https://repo.continuum.io/archive/Anaconda3-4.3.1-Linux-x86_64.sh -O ~/anaconda.sh && \
-    /bin/bash ~/anaconda.sh -b -p /opt/conda && \
-    rm ~/anaconda.sh
+# Set the locale
+RUN locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8
+
+# Install Tini
+RUN wget --quiet https://github.com/krallin/tini/releases/download/v0.9.0/tini && \
+    echo "faafbfb5b079303691a939a747d7f60591f2143164093727e870b289a44d9872 *tini" | sha256sum -c - && \
+    mv tini /usr/local/bin/tini && \
+    chmod +x /usr/local/bin/tini
+
+#Configure environment
+ENV CONDA_DIR=/opt/conda
+ENV PYTHONPATH /pelops_root/pelops:$CONDA_DIR:$PYTHONPATH
+ENV PATH=/usr/local/cuda/bin:/usr/local/nvidia/bin:$CONDA_DIR/bin:$PATH
+
+# Install conda 
+RUN cd /tmp && \
+    mkdir -p $CONDA_DIR && \
+    wget --quiet https://repo.continuum.io/miniconda/Miniconda3-3.19.0-Linux-x86_64.sh && \
+    echo "9ea57c0fdf481acf89d816184f969b04bc44dea27b258c4e86b1e3a25ff26aa0 *Miniconda3-3.19.0-Linux-x86_64.sh" | sha256sum -c - && \
+    /bin/bash Miniconda3-3.19.0-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
+    rm Miniconda3-3.19.0-Linux-x86_64.sh && \
+    $CONDA_DIR/bin/conda install --quiet --yes conda==3.19.1 && \
+    $CONDA_DIR/bin/conda clean -tipsy
+
+#install notebook
+RUN $CONDA_DIR/bin/conda install --quiet --yes \
+    'notebook=4.1*' \
+    conda-build \
+    terminado \
+    && $CONDA_DIR/bin/conda clean -tipsy
+
+RUN $CONDA_DIR/bin/conda install --quiet --yes \
+    'bokeh=0.12*' \
+    'cloudpickle=0.1*' \
+    'cython=0.24*' \
+    'dill=0.2*' \
+    'gensim=0.12*' \
+    'h5py=2.6*' \
+    'ipywidgets=5.2*' \
+    'matplotlib=1.5*' \
+    'numba=0.29*' \
+    'numexpr=2.6*' \
+    'numpy=1.11*' \
+    'pandas=0.18*' \
+    'patsy=0.4*' \
+    'pillow=3.4*' \
+    'scikit-image=0.12*' \
+    'scikit-learn=0.18*' \
+    'scipy=0.18*' \
+    'seaborn=0.7*' \
+    'statsmodels=0.6*' \
+    'sympy=1.0*' \
+    && $CONDA_DIR/bin/conda clean -tipsy
 
 # install dependencies of plugins for pelops
 RUN for file in $(find . -name "requirements.txt"); \
@@ -19,18 +92,19 @@ RUN for file in $(find . -name "requirements.txt"); \
 # Install Python packages
 ENV TENSORFLOW_VERSION=0.12.* \
     KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
-#RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
-#RUN pip install tensorflow==${TENSORFLOW_VERSION}
-#RUN pip install imageio
+RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
+RUN pip install tensorflow==${TENSORFLOW_VERSION}
+RUN pip install imageio
 RUN /opt/conda/bin/conda install -y -c conda-forge opencv
 
-#ENV INDOCKERCONTAINER 1
+ENV INDOCKERCONTAINER 1
 
 ADD . /pelops_root
 WORKDIR /pelops_root
-ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
 
-RUN mkdir INPUT_DIR
+RUN mkdir INPUT_DIR1
+RUN mkdir INPUT_DIR2
+RUN mkdir MODEL_DIR
 RUN mkdir OUTPUT_DIR
 
 CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
