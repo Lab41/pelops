@@ -8,6 +8,7 @@ import numpy as np
 import scipy.spatial.distance
 from keras.applications.resnet50 import preprocess_input
 from keras.models import Model
+from keras.models import model_from_json
 from keras.preprocessing import image
 
 
@@ -17,6 +18,7 @@ def load_image(img_path):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     return x
+
 
 def load_model_workaround(model_file, weight_file):
     # load json and create model
@@ -29,13 +31,13 @@ def load_model_workaround(model_file, weight_file):
     return loaded_model
 
 
-def get_models(model=None,weights=None):
+def get_models(model=None, weights=None):
     model = load_model_workaround(model, weights)
     return model
 
 
-def image_features(left,right, model):
-    predictions = model.predict([left,right])
+def image_features(left, right, model):
+    predictions = model.predict([left, right])
     return predictions
 
 
@@ -55,7 +57,7 @@ def find_images(topdir):
 def write_data(vector_file, limage_file, rimage_file, feature):
     list_feature = feature.flatten().tolist()
     str_feature = ','.join(str(j) for j in list_feature)
-    outdata = '{0},{1},{2}\n'.format(limage_file,rimage_file, str_feature)
+    outdata = '{0},{1},{2}\n'.format(limage_file, rimage_file, str_feature)
     vector_file.write(outdata)
     vector_file.flush()
 
@@ -67,12 +69,12 @@ def main(argv=None):
     image_dir_r = argv[2]
     vector_dir = argv[3]
 
-    model_file = os.environ.get('MODEL',None)
-    weights_file = os.environ.get('WEIGHTS',None)
-    layer = os.environ.get('LAYER',None)
+    model_file = os.environ.get('MODEL', None)
+    weights_file = os.environ.get('WEIGHTS', None)
+    layer = os.environ.get('LAYER', None)
 
-    vector_file_name = os.path.join(vector_dir,
-                                    'vectorOutputFile_{0}.csv'.format(time.time()))
+    vector_file_name = os.path.join(
+        vector_dir, 'vectorOutputFile_{0}.csv'.format(time.time()))
 
     vector_file = open(vector_file_name, 'w')
 
@@ -87,9 +89,9 @@ def main(argv=None):
             l_img = load_image(limage_file)
             r_img = load_image(rimage_file)
 
-            feature = image_features(l_img,r_img, model)
+            feature = image_features(l_img, r_img, model)
 
-            write_data(vector_file, image_file, feature)
+            write_data(vector_file, limage_file, rimage_file, feature)
 
     vector_file.close()
 
