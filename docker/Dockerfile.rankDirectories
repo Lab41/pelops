@@ -1,0 +1,36 @@
+FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu14.04
+MAINTAINER dgrossman <dgrossman@iqt.org>
+
+RUN apt-get update && \
+    apt-get install -y \
+    git wget python-pip
+
+RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
+    wget --quiet https://repo.continuum.io/archive/Anaconda3-4.3.1-Linux-x86_64.sh -O ~/anaconda.sh && \
+    /bin/bash ~/anaconda.sh -b -p /opt/conda && \
+    rm ~/anaconda.sh
+
+# install dependencies of plugins for pelops
+RUN for file in $(find . -name "requirements.txt"); \
+    do \
+        pip install -r $file; \
+    done
+
+# Install Python packages
+ENV TENSORFLOW_VERSION=0.12.* \
+    KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
+#RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
+#RUN pip install tensorflow==${TENSORFLOW_VERSION}
+#RUN pip install imageio
+RUN /opt/conda/bin/conda install -y -c conda-forge opencv
+
+#ENV INDOCKERCONTAINER 1
+
+ADD . /pelops_root
+WORKDIR /pelops_root
+ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+
+RUN mkdir INPUT_DIR
+RUN mkdir OUTPUT_DIR
+
+CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
