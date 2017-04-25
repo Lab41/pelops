@@ -18,7 +18,7 @@ class SliceDataset(chip.ChipDataset):
     def __init__(self, dataset_path, set_type=None, debug=False):
         super().__init__(dataset_path, set_type)
         self.__obset_txt = '(?P<obSetId>ObSet(?P<obSetIdx>\d+)_(?P<epoch>\d+)_(?P<obSetName>.+?)' \
-                           '[/\\\\]images[/\\\\]ObSet\d+-(?P<chipId>\d+)-.*(?:png|jpg))'
+                           '[/\\\\]images[/\\\\]ObSet\d+-(?P<chipId>\d+).*(?:png|jpg))'
         self.__obset_ptn = re.compile(self.__obset_txt, re.S | re.I)
         self.__noise_seq = 0
         self.__debug = debug
