@@ -14,7 +14,8 @@ def slice_env(tmpdir):
         ['1', ' 1', '0'],
         ['1', ' 2', '1'],
         ['1', ' 3', '0'],
-        ['2', ' 1', '1']
+        ['2', ' 1', '1'],
+        ['100', ' 1', '2'],
     ]
 
     truth_file = work_dir.join('truth.txt')
@@ -37,7 +38,7 @@ def slice_env(tmpdir):
 def test_slice_chip_load(slice_env):
     """Test that SLiCE chips load without error"""
     slice_dataset = slice.SliceDataset(slice_env)
-    assert len(slice_dataset.chips) == 4
+    assert len(slice_dataset.chips) == 5
 
 
 def test_slice_chip_tgt_car_id(slice_env):
@@ -45,8 +46,8 @@ def test_slice_chip_tgt_car_id(slice_env):
     slice_dataset = slice.SliceDataset(slice_env)
     target_ids = [chip.car_id for chip in slice_dataset.chips.values() if chip.car_id.startswith('tgt-')]
     assert 'tgt-000000001' in target_ids
-    assert len(target_ids) == 2
-    assert len(set(target_ids)) == 1
+    assert len(target_ids) == 3
+    assert len(set(target_ids)) == 2
 
 
 def test_slice_chip_unk_car_id(slice_env):
