@@ -1,10 +1,10 @@
-import os
-import io
-import re
-import sys
 import csv
 import datetime
+import io
 import itertools
+import os
+import re
+import sys
 
 import pelops.datasets.chip as chip
 
@@ -28,58 +28,41 @@ class SliceDataset(chip.ChipDataset):
     def __decode_truth_file(truth_file):
         """The labels for the STR processed SLiCE chips are in a 'truth.txt' file which this function parses."""
 
-        try:
-            with open(truth_file) as truth_hdl:
-                truth_text = truth_hdl.read()
-                for char in [' ', '%']:
-                    truth_text = truth_text.replace(char, '')
-                truth_fobj = io.StringIO(truth_text)
-                return {(int(dct['obSetIdx']), int(dct['chipIdx'])): int(dct['targetID'])
-                        for dct in csv.DictReader(truth_fobj)}
-
-        except IOError as io_err:
-            sys.stderr.write("Error occurred when attempting to read slice truth file ({}).".format(io_err))
-        except KeyError as key_err:
-            sys.stderr.write("Truth file headers may not be set appropriately ({}).".format(key_err))
-
-        return {}
+        with open(truth_file) as truth_hdl:
+            truth_text = truth_hdl.read()
+            for char in [' ', '%']:
+                truth_text = truth_text.replace(char, '')
+            truth_fobj = io.StringIO(truth_text)
+            return {(int(dct['obSetIdx']), int(dct['chipIdx'])): int(dct['targetID'])
+                    for dct in csv.DictReader(truth_fobj)}
 
     def __index_chip(self, file_path):
         """Parses an arbitrary file path and identifies paths of valid image chips.
         Returns None for non-chip file paths."""
 
-        try:
-            mch = re.search(self.__obset_ptn, file_path)
-            if mch is None:
-                return None
-            idx_key = (int(mch.group('obSetIdx')), int(mch.group('chipId')))
-            idx_val = {'file': file_path, 'meta': mch.groupdict()}
-            return idx_key, idx_val
-
-        except KeyError as key_err:
-            sys.stderr.write("Could not locate regex groups. Pattern may have been modified. ({})".format(key_err))
+        mch = re.search(self.__obset_ptn, file_path)
+        if mch is None:
+            return None
+        idx_key = (int(mch.group('obSetIdx')), int(mch.group('chipId')))
+        idx_val = {'file': file_path, 'meta': mch.groupdict()}
+        return idx_key, idx_val
 
     def __create_chip(self, file_info, truth_value):
         """Converts parsing / indexing results into a pelops.datasets.chip.Chip object"""
+        if truth_value == 0:
+            self.__noise_seq += 1
+            car_id = 'unk-{:09d}'.format(self.__noise_seq)
+        else:
+            car_id = 'tgt-{:09d}'.format(truth_value)
 
-        try:
-            if truth_value == 0:
-                self.__noise_seq += 1
-                car_id = 'unk-{:09d}'.format(self.__noise_seq)
-            else:
-                car_id = 'tgt-{:09d}'.format(truth_value)
-
-            chip_params = [
-                file_info['file'],
-                car_id,
-                file_info['meta']['obSetName'],
-                file_info['meta']['epoch'],
-                file_info['meta']
-            ]
-            return chip.Chip(*chip_params)
-
-        except OSError as os_err:
-            sys.stderr.write("Error occurred when parsing epoch value to timestamp. ({})".format(os_err))
+        chip_params = [
+            file_info['file'],
+            car_id,
+            file_info['meta']['obSetName'],
+            file_info['meta']['epoch'],
+            file_info['meta']
+        ]
+        return chip.Chip(*chip_params)
 
     def __set_chips(self):
         """Sets the chips dict of the superclass to contain chip files for the dataset."""
