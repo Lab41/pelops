@@ -1,10 +1,10 @@
 import csv
-import datetime
 import io
 import itertools
 import os
 import re
 import sys
+from datetime import datetime
 
 import pelops.datasets.chip as chip
 
@@ -17,9 +17,6 @@ class SliceDataset(chip.ChipDataset):
 
     def __init__(self, dataset_path, set_type=None, debug=False):
         super().__init__(dataset_path, set_type)
-        self.__obset_txt = '(?P<obSetId>ObSet(?P<obSetIdx>\d+)_(?P<epoch>\d+)_(?P<obSetName>.+?)' \
-                           '[/\\\\]images[/\\\\]ObSet\d+-(?P<chipId>\d+).*(?:png|jpg))'
-        self.__obset_ptn = re.compile(self.__obset_txt, re.S | re.I)
         self.__noise_seq = 0
         self.__debug = debug
         self.__set_chips()
@@ -36,15 +33,68 @@ class SliceDataset(chip.ChipDataset):
             return {(int(dct['obSetIdx']), int(dct['chipIdx'])): int(dct['targetID'])
                     for dct in csv.DictReader(truth_fobj)}
 
-    def __index_chip(self, file_path):
+    @staticmethod
+    def index_chip(file_path):
         """Parses an arbitrary file path and identifies paths of valid image chips.
         Returns None for non-chip file paths."""
 
-        mch = re.search(self.__obset_ptn, file_path)
-        if mch is None:
-            return None
-        idx_key = (int(mch.group('obSetIdx')), int(mch.group('chipId')))
-        idx_val = {'file': file_path, 'meta': mch.groupdict()}
+        # We have to handle two cases:
+        #
+        # 1) The STR San Antonio DOT chips, which have the form:
+        #     ObSet009_1473015765_IH37_Jones/images/ObSet009-014.png
+        #
+        # 2) The SLICE chips, which have the form:
+        #     ObSet101_1473082429_day5_camera3/images/ObSet101-001-0-20160905_185543.375_1.jpg
+        #
+        # The epoch on the SLICE chips is per chip, whereas it is per
+        # observation set for the STR chips. The SLICE chip file names have the
+        # follow information after the ObSet and chip id:
+        #
+        # Obset-ChipID-label-time_unused
+
+        # Split the file path into pieces to extract the information from it
+        file_path = os.path.normpath(file_path)
+        directory, _, file = file_path.split(os.sep)[-3:]
+
+        # Sometimes we get the truth.txt file, which we do not want
+        if file == "truth.txt":
+            return
+
+        # Get the observation set, time, and name from the directory
+        obset_str, epoch_str, *name = directory.split("_")
+        name = "_".join(name)
+
+        # We slice off the first part of the string that is non-numeric, where
+        # 5 = len("ObSet")
+        obset_int = int(obset_str[5:])
+
+        # Get the chip ID, and perhaps more, from the name of the file
+        _, chip_id_str, *misc = file.split("-")
+
+        # SLICE chips have more information
+        if misc:
+            chip_id_int = int(chip_id_str)
+            _, time = misc
+            # Remove file extension
+            time, _ = os.path.splitext(time)
+            # Remove _1 at end of each time and convert to microseconds
+            time = time[:-2] + "000"
+            # Get milliseconds since the unix epoch
+            epoch = datetime.utcfromtimestamp(0)
+            dt = datetime.strptime(time, "%Y%m%d_%H%M%S.%f")
+            epoch_str = str(int((dt - epoch).total_seconds()))
+        else:
+            chip_id, _ = os.path.splitext(chip_id_str)
+            chip_id_int = int(chip_id)
+
+        idx_key = (obset_int, chip_id_int)
+        idx_val = {
+            'file': file_path,
+            'meta': {
+                'obSetName': name,
+                'epoch': epoch_str,
+            },
+        }
         return idx_key, idx_val
 
     def __create_chip(self, file_info, truth_value):
@@ -85,7 +135,7 @@ class SliceDataset(chip.ChipDataset):
 
         # Index all image chips
         file_paths = [[os.path.join(walked[0], wfile) for wfile in walked[2]] for walked in root_files]
-        chip_idx = dict(filter(lambda t: t is not None, map(self.__index_chip, itertools.chain(*file_paths))))
+        chip_idx = dict(filter(lambda t: t is not None, map(self.index_chip, itertools.chain(*file_paths))))
 
         if len(chip_idx) != len(truth_data):
             raise IOError("Number of truth records not equal to number of chips.")

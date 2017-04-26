@@ -1,7 +1,9 @@
-import io
 import csv
-import pytest
 import datetime
+import io
+
+import pytest
+
 import pelops.datasets.slice as slice
 
 
@@ -63,3 +65,69 @@ def test_slice_chip_dtg(slice_env):
     slice_dataset = slice.SliceDataset(slice_env)
     dtgs = {datetime.datetime.fromtimestamp(float(chip.time)).isoformat() for chip in slice_dataset.chips.values()}
     assert len(dtgs) == 1
+
+
+def test_slice_index_chip():
+    TRUTH = (
+        # STR like chip
+        (
+            "ObSet009_1473015765_IH37_Jones/images/ObSet009-014.png",
+            (
+                (9, 14),
+                {
+                    'file': "ObSet009_1473015765_IH37_Jones/images/ObSet009-014.png",
+                    'meta': {
+                        'obSetName': "IH37_Jones",
+                        'epoch': "1473015765",
+                    },
+                },
+            ),
+        ),
+        # STR like chip
+        (
+            "/root/data/stuff/ObSet009_1473015765_IH37_Jones/images/ObSet009-014.png",
+            (
+                (9, 14),
+                {
+                    'file': "/root/data/stuff/ObSet009_1473015765_IH37_Jones/images/ObSet009-014.png",
+                    'meta': {
+                        'obSetName': "IH37_Jones",
+                        'epoch': "1473015765",
+                    },
+                },
+            ),
+        ),
+        # SLICE like chip
+        (
+            "ObSet101_1473082429_day5_camera3/images/ObSet101-001-0-20160905_185543.375_1.jpg",
+            (
+                (101, 1),
+                {
+                    'file': "ObSet101_1473082429_day5_camera3/images/ObSet101-001-0-20160905_185543.375_1.jpg",
+                    'meta': {
+                        'obSetName': "day5_camera3",
+                        'epoch': "1473101743",
+                    },
+                },
+            ),
+        ),
+        # SLICE like chip
+        (
+            "/test/test/data/ObSet101_1473082429_day5_camera3/images/ObSet101-001-0-20160905_185543.375_1.jpg",
+            (
+                (101, 1),
+                {
+                    'file': "/test/test/data/ObSet101_1473082429_day5_camera3/images/ObSet101-001-0-20160905_185543.375_1.jpg",
+                    'meta': {
+                        'obSetName': "day5_camera3",
+                        'epoch': "1473101743",
+                    },
+                },
+            ),
+        ),
+        # Special cases
+        ("/test/test/truth.txt", None),
+    )
+
+    for file_path, answer in TRUTH:
+        assert answer == slice.SliceDataset.index_chip(file_path)
