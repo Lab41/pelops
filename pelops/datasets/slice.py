@@ -54,7 +54,11 @@ class SliceDataset(chip.ChipDataset):
 
         # Split the file path into pieces to extract the information from it
         file_path = os.path.normpath(file_path)
-        directory, _, file = file_path.split(os.sep)[-3:]
+        directory, img_type, file = file_path.split(os.sep)[-3:]
+
+        # Sometimes we have masks, reject those
+        if img_type != "images":
+            return
 
         # Sometimes we get the truth.txt file, which we do not want
         if file == "truth.txt":

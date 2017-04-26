@@ -127,6 +127,7 @@ def test_slice_index_chip():
         ),
         # Special cases
         ("/test/test/truth.txt", None),
+        ("/test/masks/image_mask.png", None),
     )
 
     for file_path, answer in TRUTH:
