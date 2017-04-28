@@ -1,28 +1,62 @@
-FROM continuumio/anaconda3
+FROM ubuntu:14.04
+
 MAINTAINER dgrossman <dgrossman@iqt.org>
 
 RUN apt-get update && \
     apt-get install -y \
-    git
+    bzip2 \
+    ca-certificates \
+    git \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    wget
 
-# install dependencies of plugins for pelops
-RUN for file in $(find . -name "requirements.txt"); \
-    do \
-        pip install -r $file; \
-    done
+#Configure environment
+ENV CONDA_DIR=/opt/conda \
+    # 4.2.12 is the last version with Python3.5, which we need
+    MINICONDA_SCRIPT=Miniconda3-4.2.12-Linux-x86_64.sh \
+    MINICONDA_SHA=c59b3dd3cad550ac7596e0d599b91e75d88826db132e4146030ef471bb434e9a
+
+# Install conda
+RUN cd /tmp && \
+    mkdir -p $CONDA_DIR && \
+    wget --quiet https://repo.continuum.io/miniconda/${MINICONDA_SCRIPT} && \
+    echo "${MINICONDA_SHA} ${MINICONDA_SCRIPT}" | sha256sum -c - && \
+    /bin/bash ${MINICONDA_SCRIPT} -f -b -p $CONDA_DIR && \
+    rm ${MINICONDA_SCRIPT}
+
+RUN $CONDA_DIR/bin/conda install --quiet --yes \
+    'python=3.5.*' \
+    conda-build \
+    'pytest=3.0.*' \
+    'cython=0.24*' \
+    'h5py=2.6*' \
+    'numpy=1.11*' \
+    'pillow=3.4*' \
+    'scikit-image=0.12*' \
+    'scikit-learn=0.18*' \
+    && $CONDA_DIR/bin/conda clean -tipsy
 
 # Install Python packages
 ENV TENSORFLOW_VERSION=0.12.* \
     KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
-RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
-RUN pip install tensorflow==${TENSORFLOW_VERSION}
-RUN pip install imageio
-RUN conda install -y -c conda-forge opencv
+RUN $CONDA_DIR/bin/pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION} \
+    tensorflow==${TENSORFLOW_VERSION} \
+    imageio
 
 ENV INDOCKERCONTAINER 1
 
 ADD . /pelops_root
 WORKDIR /pelops_root
-ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+ENV PYTHONPATH=/pelops_root/pelops:$PYTHONPATH \
+    PATH=/usr/local/cuda/bin:/usr/local/nvidia/bin:$CONDA_DIR/bin:$PATH
+
+# install dependencies of plugins for pelops
+RUN for file in $(find . -name "requirements.txt"); \
+    do \
+        $CONDA_DIR/bin/pip install -r $file; \
+    done
 
 CMD ["python", "-m","pytest","-v","-s"]
