@@ -1,4 +1,4 @@
-all: base image2vecs
+all: base image2vecs siamese
 
 # Base requirements for all containers
 base:
@@ -12,3 +12,6 @@ test: base
 # Image processing
 image2vecs: base
 	docker build -t l41-pelops-i2v -f docker/Dockerfile.images2vecs .
+
+siamese: base
+	docker build -t l41-pelops-siamese -f docker/Dockerfile.vectorSiamese .
