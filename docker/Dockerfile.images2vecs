@@ -1,26 +1,6 @@
-FROM continuumio/anaconda3
-MAINTAINER dgrossman <dgrossman@iqt.org>
+FROM l41-pelops-base
 
-RUN apt-get update && \
-    apt-get install -y \
-    git
-
-# install dependencies of plugins for pelops
-RUN for file in $(find . -name "requirements.txt"); \
-    do \
-        pip install -r $file; \
-    done
-
-# Install Python packages
-RUN conda install -y -c conda-forge keras=2.0.2
-RUN pip install imageio
-RUN conda install -y -c conda-forge opencv
-
-ENV INDOCKERCONTAINER 1
-
-ADD . /pelops_root
-WORKDIR /pelops_root
-ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+MAINTAINER Lab41 <info@lab41.org>
 
 RUN mkdir INPUT_DIR
 RUN mkdir OUTPUT_DIR
