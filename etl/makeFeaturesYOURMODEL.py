@@ -6,7 +6,8 @@ import time
 
 import numpy as np
 import scipy.spatial.distance
-from keras.applications.resnet50 import ResNet50, preprocess_input
+from keras.applications.resnet50 import preprocess_input
+from keras.applications.resnet50 import ResNet50
 from keras.models import Model
 from keras.preprocessing import image
 
@@ -17,6 +18,7 @@ def load_image(img_path):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     return x
+
 
 def load_model_workaround(model_file, weight_file):
     # load json and create model
@@ -29,7 +31,7 @@ def load_model_workaround(model_file, weight_file):
     return loaded_model
 
 
-def get_models(model=None,weights=None,layer=None):
+def get_models(model=None, weights=None, layer=None):
     # include_top needs to be True for this to work
     if model is None or weights is None or layer is None:
         print('MODEL NOT FULLY SPECIFIED, USING RESNET FEATURES')
@@ -39,7 +41,7 @@ def get_models(model=None,weights=None,layer=None):
     else:
         base_model = load_model_workaround(model, weights)
         model = Model(input=base_model.input,
-                      output=base_model.get_layer(layer).output) 
+                      output=base_model.get_layer(layer).output)
     return (model)
 
 
@@ -76,9 +78,9 @@ def main(argv=None):
     image_dir = argv[1]
     vector_dir = argv[2]
 
-    model_file = os.environ.get('MODEL',None)
-    weights_file = os.environ.get('WEIGHTS',None)
-    layer_name = os.environ.get('LAYER',None)
+    model_file = os.environ.get('MODEL', None)
+    weights_file = os.environ.get('WEIGHTS', None)
+    layer_name = os.environ.get('LAYER', None)
 
     vector_file_name = os.path.join(
         vector_dir, 'vectorOutputFile_{0}.csv'.format(time.time()))
@@ -86,7 +88,7 @@ def main(argv=None):
 
     images = find_images(image_dir)
 
-    model = get_models(model_file, weights_file, layer_name))
+    model = get_models(model_file, weights_file, layer_name)
 
     for image_file in images:
         img = load_image(image_file)
