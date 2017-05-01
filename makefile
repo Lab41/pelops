@@ -1,4 +1,4 @@
-all: base image2vecs siamese
+all: base image2vecs siamese ranker
 
 # Base requirements for all containers
 base:
@@ -15,3 +15,6 @@ image2vecs: base
 
 siamese: base
 	docker build -t l41-pelops-siamese -f docker/Dockerfile.vectorSiamese .
+
+ranker: base
+	docker build -t l41-pelops-ranker -f docker/Dockerfile.rankDirectories .
