@@ -1,31 +1,9 @@
-FROM continuumio/anaconda3
-MAINTAINER dgrossman <dgrossman@iqt.org>
+FROM l41-pelops-base
 
-RUN apt-get update && \
-    apt-get install -y \
-    git
-
-# install dependencies of plugins for pelops
-RUN for file in $(find . -name "requirements.txt"); \
-    do \
-        pip install -r $file; \
-    done
-
-# Install Python packages
-ENV TENSORFLOW_VERSION=0.12.* \
-    KERAS_VERSION=2ad3544b017fe9c0d7a25ef0640baa52281372b5
-RUN pip install git+git://github.com/fchollet/keras.git@${KERAS_VERSION}
-RUN pip install tensorflow==${TENSORFLOW_VERSION}
-RUN pip install imageio
-RUN conda install -y -c conda-forge opencv
-
-ENV INDOCKERCONTAINER 1
-
-ADD . /pelops_root
-WORKDIR /pelops_root
-ENV PYTHONPATH /pelops_root/pelops:$PYTHONPATH
+MAINTAINER Lab41 <info@lab41.org>
 
 RUN mkdir INPUT_DIR
 RUN mkdir OUTPUT_DIR
+RUN mkdir MODEL_DIR
 
-CMD ["python", "/pelops_root/etl/makeFeaturesResNet50.py","./INPUT_DIR","./OUTPUT_DIR"]
+CMD ["python", "/pelops_root/etl/makeFeaturesYOURMODEL.py","./INPUT_DIR","./OUTPUT_DIR"]
