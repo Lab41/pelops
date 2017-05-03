@@ -31,6 +31,8 @@ TODO
 
 ```docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR l41-pelops-i2v```
 
+Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add ```-u $(id -u $USER)``` to the docker run command above to create output files owned by the current user.
+
 3. Advanced, bring your own model:
 
 ```docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR -v **/folder/with/model_files/**:/pelops_root/MODEL_DIR -e MODEL='/pelops_root/**MODELFILENAME**' -e WEIGHTS='/pelops_root/**WEIGHTSFILENAME**' -e LAYER='**layernameToUseAsOutput**' l41-pelops-i2v```
@@ -42,6 +44,8 @@ Run the Siamese model as follows:
 Run the Ranker to compare two directories as follows:
 
 ```docker run -v /folder/with/chips1:/pelops_root/INPUT_DIR1 -v /folder/with/chips2:/pelops_root/INPUT_DIR2 -v /dir/for/output:/pelops_root/OUTPUT_DIR -v /folder/with/saved/model:/pelops_root/MODEL_DIR -e WEIGHTS='/pelops_root/MODEL_DIR/model_name.weights.hdf5' -e MODEL='/pelops_root/MODEL_DIR/model_name.model.json' -e VECTORS='/pelops_root/INPUT_DIR1/vectors.json' l41-pelops-ranker```
+
+Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add ```-u $(id -u $USER)``` to the docker run commands above to create output files owned by the current user.
 
 # Tests
 Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
