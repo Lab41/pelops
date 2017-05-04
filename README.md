@@ -10,20 +10,43 @@ based methods to automatically identify cars by using their large scale
 features—color, shape, light configuration, etc.
 
 # Install Instructions
-TODO
 
-# Configuration
-TODO
+Pelops provides several Docker containers the assist in running the project.
+You can build them by checking out the code and running make:
 
-# Required Dependencies
-TODO
+```bash
+git clone https://github.com/Lab41/pelops.git
+cd pelops
+make
+```
+
+Then:
+
+```bash
+make notebook
+```
+
+Which will run a container containing Pelops and a notebook server.
+
+Otherwise you can install Pelops using `pip`:
+
+```bash
+git clone https://github.com/Lab41/pelops.git
+pip install pelops
+```
+
+There are several dependencies that will need to be installed. The
+[`requirements.txt`](requirements.txt) should include most of them, but other
+programs such as [keras](https://keras.io/) and
+[Tensorflow](https://www.tensorflow.org/) are also required. For this reason
+it is suggested to use the notebook container to run Pelops.
 
 # Documentation
 TODO
 
 # Turning Chips to Features
 
-1. build the docker continers using make:
+1. build the docker containers using make:
 
 ```make```
 
