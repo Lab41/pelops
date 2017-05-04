@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from setuptools import find_package
+from setuptools import find_packages
 from setuptools import setup
 
 setup(
@@ -10,7 +10,7 @@ setup(
     author="Lab41",
     author_email="lab41@iqt.org",
     license="Apache Software License",
-    packages=find_package(),
+    packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
