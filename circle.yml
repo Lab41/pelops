@@ -28,6 +28,11 @@ test:
   pre:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
   override:
-    - cd /home/ubuntu/pelops; /home/ubuntu/miniconda3/bin/python3 setup.py install; /home/ubuntu/miniconda3/bin/python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
+    # Test installation via pip
+    - cd /home/ubuntu/pelops && /home/ubuntu/miniconda3/bin/pip install .
+    # Test importing installed package
+    - /home/ubuntu/miniconda3/bin/python3 -c "import pelops; import pelops.datasets"
+    # Run pytest tests
+    - cd /home/ubuntu/pelops && /home/ubuntu/miniconda3/bin/python3 -m pytest -v --cov --cov-report=term-missing:skip-covered --junitxml=$CIRCLE_TEST_REPORTS/junit/junit_output.xml
   post:
     - bash <(curl -s https://codecov.io/bash) -t 08234947-61d0-48ea-b0f0-1c82d3f2dfd7

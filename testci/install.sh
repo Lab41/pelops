@@ -108,9 +108,3 @@ pip install psutil memory_profiler
 if [[ "$COVERAGE" == "true" ]]; then
     pip install coverage coveralls
 fi
-
-# numpy not installed when skipping the tests so we do not want to run
-# setup.py install
-if [[ "$SKIP_TESTS" != "true" ]]; then
-    python setup.py install
-fi

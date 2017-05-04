@@ -1,8 +1,15 @@
-all: base image2vecs siamese ranker
+all: base image2vecs siamese ranker build-notebook
 
 # Base requirements for all containers
 base:
 	docker build -t l41-pelops-base -f docker/Dockerfile.base .
+
+# Jupyter notebook server
+build-notebook: base
+	docker build -t l41-pelops-notebook -f docker/Dockerfile.notebook ./docker/
+
+notebook: build-notebook
+	docker run -p 8888:8888 -it l41-pelops-notebook
 
 # Tests
 test: base

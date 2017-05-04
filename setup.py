@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
+from setuptools import find_packages
 from setuptools import setup
 
 setup(
     name="Pelops",
-    version="0.1",
+    version="0.1.1",
     description="Car re-identification via deep learning",
     url="https://www.python.org/sigs/distutils-sig/",
     author="Lab41",
     author_email="lab41@iqt.org",
     license="Apache Software License",
-    packages=["pelops"],
+    packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
