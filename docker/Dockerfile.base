@@ -29,7 +29,7 @@ RUN cd /tmp && \
 
 RUN $CONDA_DIR/bin/conda install --quiet --yes \
     'python=3.5.*' \
-    conda-build \
+    'conda-build=2.1.*' \
     'pytest=3.0.*' \
     'cython=0.24*' \
     'h5py=2.6*' \
@@ -37,7 +37,11 @@ RUN $CONDA_DIR/bin/conda install --quiet --yes \
     'pillow=3.4*' \
     'scikit-image=0.12*' \
     'scikit-learn=0.18*' \
+    'hdfs3=0.1.*' \
+    'libhdfs3=2.2.*' \
     && $CONDA_DIR/bin/conda clean -tipsy
+
+RUN $CONDA_DIR/bin/conda update pip --quiet --yes
 
 # Install Python packages
 ENV TENSORFLOW_VERSION=0.12.* \
