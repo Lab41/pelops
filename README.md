@@ -9,51 +9,56 @@ Pelops is a project by [Lab41](http://www.lab41.org/) that uses deep learning
 based methods to automatically identify cars by using their large scale
 features—color, shape, light configuration, etc.
 
-# Install Instructions
-TODO
+## Install Instructions
 
-# Configuration
-TODO
+Pelops provides several Docker containers the assist in running the project.
+You can build them by checking out the code and running make:
 
-# Required Dependencies
-TODO
+```bash
+git clone https://github.com/Lab41/pelops.git
+cd pelops
+make
+```
 
-# Documentation
-TODO
+Then:
 
-# Turning Chips to Features
+```bash
+make notebook
+```
 
-1. build the docker continers using make:
+Which will run a container containing Pelops and a notebook server.
 
-```make```
+Otherwise you can install Pelops using `pip`:
 
-2. map folders with images and and output directory, and run:
+```bash
+git clone https://github.com/Lab41/pelops.git
+pip install pelops
+```
 
-```docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR l41-pelops-i2v```
+There are several dependencies that will need to be installed. The
+[`requirements.txt`](requirements.txt) should include most of them, but other
+programs such as [keras](https://keras.io/) and
+[Tensorflow](https://www.tensorflow.org/) are also required. For this reason
+it is suggested to use the notebook container to run Pelops.
 
-Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add ```-u $(id -u $USER)``` to the docker run command above to create output files owned by the current user.
+## Documentation
 
-3. Advanced, bring your own model:
+- [Turning Chips into features](docs/chips_to_features.md)
 
-```docker run -v **/folder/with/chips/**:/pelops_root/INPUT_DIR -v **/dir/for/output/**:/pelops_root/OUTPUT_DIR -v **/folder/with/model_files/**:/pelops_root/MODEL_DIR -e MODEL='/pelops_root/**MODELFILENAME**' -e WEIGHTS='/pelops_root/**WEIGHTSFILENAME**' -e LAYER='**layernameToUseAsOutput**' l41-pelops-i2v```
+## Tests
 
-Run the Siamese model as follows:
+Tests are currently written in [pytest](https://docs.pytest.org/en/latest/). The tests are automatically run when submitting pull requests.
 
-```docker run -v /folder/with/chips1:/pelops_root/INPUT_DIR1 -v /folder/with/chips2:/pelops_root/INPUT_DIR2 -v /dir/for/output:/pelops_root/OUTPUT_DIR -v /folder/with/saved/model:/pelops_root/MODEL_DIR -e WEIGHTS='/pelops_root/MODEL_DIR/model_name.weights.hdf5' -e MODEL='/pelops_root/MODEL_DIR/model_name.model.json' -e VECTORS='/pelops_root/INPUT_DIR1/vectors.json' l41-pelops-siamese```
+You can run the tests in a container by calling:
 
-Run the Ranker to compare two directories as follows:
+```bash
+make test
+```
 
-```docker run -v /folder/with/chips1:/pelops_root/INPUT_DIR1 -v /folder/with/chips2:/pelops_root/INPUT_DIR2 -v /dir/for/output:/pelops_root/OUTPUT_DIR -v /folder/with/saved/model:/pelops_root/MODEL_DIR -e WEIGHTS='/pelops_root/MODEL_DIR/model_name.weights.hdf5' -e MODEL='/pelops_root/MODEL_DIR/model_name.model.json' -e VECTORS='/pelops_root/INPUT_DIR1/vectors.json' l41-pelops-ranker```
+This will build a docker container, mount your local version of the code, and
+run the tests.
 
-Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add ```-u $(id -u $USER)``` to the docker run commands above to create output files owned by the current user.
-
-# Tests
-Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
-
-They can also be tested using:
-TODO
-
-# Contributing to Pelops
+## Contributing to Pelops
 
 Want to contribute?  Awesome!
 
