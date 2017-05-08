@@ -81,10 +81,17 @@ docker run -v /folder/with/chips1:/pelops_root/INPUT_DIR1 -v /folder/with/chips2
 Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add `-u $(id -u $USER)` to the docker run commands above to create output files owned by the current user.
 
 # Tests
-Tests are currently written in py.test for Python. The tests are automatically run when building the containers.
 
-They can also be tested using:
-TODO
+Tests are currently written in [pytest](https://docs.pytest.org/en/latest/). The tests are automatically run when submitting pull requests.
+
+You can run the tests in a container by calling:
+
+```bash
+make test
+```
+
+This will build a docker container, mount your local version of the code, and
+run the tests.
 
 # Contributing to Pelops
 
