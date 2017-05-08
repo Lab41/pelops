@@ -9,7 +9,7 @@ Pelops is a project by [Lab41](http://www.lab41.org/) that uses deep learning
 based methods to automatically identify cars by using their large scale
 features—color, shape, light configuration, etc.
 
-# Install Instructions
+## Install Instructions
 
 Pelops provides several Docker containers the assist in running the project.
 You can build them by checking out the code and running make:
@@ -41,11 +41,11 @@ programs such as [keras](https://keras.io/) and
 [Tensorflow](https://www.tensorflow.org/) are also required. For this reason
 it is suggested to use the notebook container to run Pelops.
 
-# Documentation
+## Documentation
 
 - [Turning Chips into features](docs/chips_to_features.md)
 
-# Tests
+## Tests
 
 Tests are currently written in [pytest](https://docs.pytest.org/en/latest/). The tests are automatically run when submitting pull requests.
 
@@ -58,7 +58,7 @@ make test
 This will build a docker container, mount your local version of the code, and
 run the tests.
 
-# Contributing to Pelops
+## Contributing to Pelops
 
 Want to contribute?  Awesome!
 
