@@ -50,8 +50,8 @@ OUTPUTDIR=/folder/for/output && \
 MODELDIR=/folder/with/models && \
 MODELFILE=name_of_model_file.json && \
 WEIGHTFILE=name_of_weight_file.hdf5 && \
-VECTORFILE=name_of_VECTOR_file.json && \
-docker run -v ${CHIPDIR1}:/pelops_root/INPUT_DIR1 -v ${CHIPDIR2}:/pelops_root/INPUT_DIR2 -v ${OUTPUTDIR}:/pelops_root/OUTPUT_DIR -v ${MODELDIR}:/pelops_root/MODEL_DIR -e WEIGHTS="/pelops_root/MODEL_DIR/${WEIGHTFILE}" -e MODEL="/pelops_root/MODEL_DIR/${MODELFILE}" -e VECTORS="/pelops_root/INPUT_DIR1/${VECTORFILE}" l41-pelops-ranker
+LAYERNAME=layername && \
+docker run -v ${CHIPDIR1}:/pelops_root/INPUT_DIR1 -v ${CHIPDIR2}:/pelops_root/INPUT_DIR2 -v ${OUTPUTDIR}:/pelops_root/OUTPUT_DIR -v ${MODELDIR}:/pelops_root/MODEL_DIR -e WEIGHTS="/pelops_root/MODEL_DIR/${WEIGHTFILE}" -e MODEL="/pelops_root/MODEL_DIR/${MODELFILE}" -e LAYER="${LAYERNAME}" l41-pelops-ranker
 ```
 
 Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add `-u $(id -u $USER)` to the docker run commands above to create output files owned by the current user.
