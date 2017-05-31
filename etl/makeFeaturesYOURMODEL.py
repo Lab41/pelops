@@ -8,7 +8,7 @@ import numpy as np
 import scipy.spatial.distance
 from keras.applications.resnet50 import preprocess_input
 from keras.applications.resnet50 import ResNet50
-from keras.models import Model
+from keras.models import Model, model_from_json
 from keras.preprocessing import image
 
 
