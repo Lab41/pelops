@@ -25,7 +25,7 @@ MODELDIR=/folder/with/models && \
 MODELFILE=name_of_model_file && \
 WEIGHTFILE=name_of_weight_file && \
 LAYERNAME=layername && \
-docker run -v ${CHIPDIR1}:/pelops_root/INPUT_DIR -v ${OUTPUTDIR}:/pelops_root/OUTPUT_DIR -v ${MODELDIR}:/pelops_root/MODEL_DIR -e MODEL="/pelops_root/${MODELFILE}" -e WEIGHTS="/pelops_root/${WEIGHTFILE}" -e LAYER="${LAYERNAME}" l41-pelops-i2v
+docker run -v ${CHIPDIR1}:/pelops_root/INPUT_DIR -v ${OUTPUTDIR}:/pelops_root/OUTPUT_DIR -v ${MODELDIR}:/pelops_root/MODEL_DIR -e MODEL="/pelops_root/MODEL_DIR/${MODELFILE}" -e WEIGHTS="/pelops_root/MODEL_DIR/${WEIGHTFILE}" -e LAYER="${LAYERNAME}" l41-pelops-i2v
 ```
 
 Run the Siamese model as follows:
