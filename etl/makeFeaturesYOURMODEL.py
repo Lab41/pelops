@@ -1,11 +1,9 @@
 # coding: utf-8
-import json
 import os
 import sys
 import time
 
 import numpy as np
-import scipy.spatial.distance
 from keras.applications.resnet50 import preprocess_input
 from keras.applications.resnet50 import ResNet50
 from keras.models import Model, model_from_json
@@ -42,11 +40,10 @@ def get_models(model=None, weights=None, layer=None):
         base_model = load_model_workaround(model, weights)
         model = Model(input=base_model.input,
                       output=base_model.get_layer(layer).output)
-    return (model)
+    return model
 
 
 def image_features(img, model):
-    #features = np.zeros((1, 2048), dtype=np.float16)
     predictions = model.predict(img)
     return predictions
 
