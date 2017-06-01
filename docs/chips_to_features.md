@@ -55,3 +55,13 @@ docker run -v ${CHIPDIR1}:/pelops_root/INPUT_DIR1 -v ${CHIPDIR2}:/pelops_root/IN
 ```
 
 Note: Docker creates output files owned by root. Grant write privileges to OUTPUT_DIR for the current user and add `-u $(id -u $USER)` to the docker run commands above to create output files owned by the current user.
+
+Run the CSV to JSON docker conversion operations as follows:
+
+```bash
+CSV1=/path/to/file1.csv && \
+CSV2=/path/to/file2.csv && \
+MODE=product && \
+JSON=/path/to/output.json && \
+docker run -e pelops_csv_1="${CSV1}" -e pelops_csv_2="${CSV2}" -e pelops_csv_mode=${MODE} -e pelops_json="${JSON}" l41-pelops-c2j
+```
