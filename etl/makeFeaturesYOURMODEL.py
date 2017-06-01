@@ -8,7 +8,7 @@ from keras.applications.resnet50 import preprocess_input
 from keras.applications.resnet50 import ResNet50
 from keras.models import Model, model_from_json
 from keras.preprocessing import image
-
+from keras.models import model_from_json
 
 def load_image(img_path):
     data = image.load_img(img_path, target_size=(224, 224))
