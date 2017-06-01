@@ -9,6 +9,8 @@ from keras.applications.resnet50 import ResNet50
 from keras.models import Model, model_from_json
 from keras.preprocessing import image
 
+DEFAULT_LAYER_NAME = 'flatten_1'
+
 
 def load_image(img_path):
     data = image.load_img(img_path, target_size=(224, 224))
@@ -16,6 +18,21 @@ def load_image(img_path):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     return x
+
+
+def save_model_workaround(model, layer, model_output_file, weights_output_file, layer_output_file):
+    print('saving model   to {}'.format(model_output_file))
+    print('saving weights to {}'.format(weights_output_file))
+    print('saving layer   to {}'.format(layer_output_file))
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open(model_output_file, 'w') as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(weights_output_file)
+    # Write layer name to text
+    with open(layer_output_file, 'w') as lyr_out:
+        lyr_out.write(layer)
 
 
 def load_model_workaround(model_file, weight_file):
@@ -35,7 +52,7 @@ def get_models(model=None, weights=None, layer=None):
         print('MODEL NOT FULLY SPECIFIED, USING RESNET FEATURES')
         base_model = ResNet50(weights='imagenet', include_top=True)
         model = Model(input=base_model.input,
-                      output=base_model.get_layer('flatten_1').output)
+                      output=base_model.get_layer(DEFAULT_LAYER_NAME).output)
     else:
         base_model = load_model_workaround(model, weights)
         model = Model(input=base_model.input,
@@ -86,6 +103,13 @@ def main(argv=None):
     images = find_images(image_dir)
 
     model = get_models(model_file, weights_file, layer_name)
+
+    # Export model, weights, and layer if not originally supplied by the environment
+    if all(map(lambda v: v is None, [model_file, weights_file, layer_name])):
+        date_time = time.strftime('%Y%m%d_%H%M%S')
+        make_out_file = lambda n: os.path.join(vector_dir, date_time + '.' + n)
+        save_model_workaround(model, DEFAULT_LAYER_NAME, make_out_file('model'),
+                              make_out_file('weights'), make_out_file('layer'))
 
     for image_file in images:
         img = load_image(image_file)
