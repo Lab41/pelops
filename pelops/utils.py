@@ -258,7 +258,7 @@ def prep_for_siamese(*csv_files, json_file='./out.json', full_combos=False):
         if full_combos:
             combos = itertools.combinations(iter_many(map(iter_rows, csv_files)), 2)
         elif len(csv_files) == 2:
-            combos = itertools.product(iter_rows(csv_files[0]), iter_rows(csv_files[1]))
+            combos = itertools.product(*map(iter_rows, csv_files))
         else:
             raise NotImplemented("Full combinations must be applied if most than two csvs are supplied")
 
