@@ -1,4 +1,4 @@
-all: base image2vecs siamese ranker build-notebook
+all: base image2vecs siamese ranker build-notebook csv2json
 
 # Base requirements for all containers
 base:
@@ -25,3 +25,7 @@ siamese: base
 
 ranker: base
 	docker build -t l41-pelops-ranker -f docker/Dockerfile.rankDirectories .
+
+# Conversion utility
+csv2json:
+	docker build -t l41-pelops-c2j -f docker/Dockerfile.csv2json .
