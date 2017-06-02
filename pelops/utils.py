@@ -7,6 +7,8 @@ import os
 import random
 import re
 import time
+import itertools
+import csv
 
 
 class SetType(enum.Enum):
@@ -225,3 +227,50 @@ def train_test_key_filter(key, split="train"):
         return True
     else:
         return False
+
+
+def prep_for_siamese(*csv_files, json_file='./out.json', full_combos=False):
+    """
+    Prepares a json file containing pairwise feature vectors for input to the siamese docker container.
+    
+    :param csv_files: List of CSV files containing i2v-produced feature vectors 
+    :param json_file: Optional output json file path
+    :param full_combos: Boolean indicating whether full combinations of observation set records should be used.
+    """
+
+    # Generator for csv rows from a single csv file.
+    def iter_rows(csv_file):
+        with open(csv_file, newline='') as csv_hdl:
+            for row in csv.reader(csv_hdl):
+                yield row
+
+    # Generator for flattened access to rows from multiple csv files.
+    def iter_many(row_gens):
+        for gen in row_gens:
+            for row in gen:
+                yield row
+
+    if len(csv_files) == 1:
+        if not full_combos:
+            raise NotImplemented("Full combinations must be applied if only one csv is supplied.")
+        combos = itertools.combinations(iter_rows(csv_files[0]), 2)
+    else:
+        if full_combos:
+            combos = itertools.combinations(iter_many(map(iter_rows, csv_files)), 2)
+        elif len(csv_files) == 2:
+            combos = itertools.product(*map(iter_rows, csv_files))
+        else:
+            raise NotImplemented("Full combinations must be applied if more than two csvs are supplied")
+
+    with open(json_file, 'w') as json_hdl:
+        for left, right in combos:
+            try:
+                dct = {
+                    'left': list([float(v) for v in left[1:]]),
+                    'right': list([float(v) for v in right[1:]]),
+                    'left_img': left[0],
+                    'right_img': right[0]
+                }
+                json_hdl.write(json.dumps(dct) + '\n')
+            except IOError:
+                raise IOError("Error occurred writing vectors to json")
