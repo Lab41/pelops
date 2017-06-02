@@ -233,9 +233,9 @@ def prep_for_siamese(*csv_files, json_file='./out.json', full_combos=False):
     """
     Prepares a json file containing pairwise feature vectors for input to the siamese docker container.
     
-    :param csv_files: List of CSV files containing i2v produced feature vectors 
+    :param csv_files: List of CSV files containing i2v-produced feature vectors 
     :param json_file: Optional output json file path
-    :param full_combos: Boolean indcating whether full combinations or observation set cartesian product should be used.
+    :param full_combos: Boolean indicating whether full combinations of observation set records should be used.
     """
 
     # Generator for csv rows from a single csv file.
@@ -252,7 +252,7 @@ def prep_for_siamese(*csv_files, json_file='./out.json', full_combos=False):
 
     if len(csv_files) == 1:
         if not full_combos:
-            raise NotImplemented("Full combinations must be applied if only one csv is supplied")
+            raise NotImplemented("Full combinations must be applied if only one csv is supplied.")
         combos = itertools.combinations(iter_rows(csv_files[0]), 2)
     else:
         if full_combos:
@@ -260,7 +260,7 @@ def prep_for_siamese(*csv_files, json_file='./out.json', full_combos=False):
         elif len(csv_files) == 2:
             combos = itertools.product(*map(iter_rows, csv_files))
         else:
-            raise NotImplemented("Full combinations must be applied if most than two csvs are supplied")
+            raise NotImplemented("Full combinations must be applied if more than two csvs are supplied")
 
     with open(json_file, 'w') as json_hdl:
         for left, right in combos:
