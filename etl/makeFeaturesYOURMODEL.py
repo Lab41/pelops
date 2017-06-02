@@ -55,8 +55,18 @@ def get_models(model=None, weights=None, layer=None):
                       output=base_model.get_layer(DEFAULT_LAYER_NAME).output)
     else:
         base_model = load_model_workaround(model, weights)
-        model = Model(input=base_model.input,
-                      output=base_model.get_layer(layer).output)
+        base_layer_names = {lyr.name for lyr in base_model.layers}
+        base_is_siamese = all([(name in base_layer_names) for name in ['dense_1', 'dense_2', 'lambda_1']])
+
+        if base_is_siamese:
+            print('Input model is siamese, extracting resnet.')
+            fresh_resnet = ResNet50(weights='imagenet', include_top=True)
+            fresh_resnet.set_weights(base_model.get_layer('resnet50').get_weights())
+            model = Model(input=fresh_resnet.input,
+                          output=fresh_resnet.get_layer(DEFAULT_LAYER_NAME).output)
+        else:
+            model = Model(input=base_model.input,
+                          output=base_model.get_layer(layer).output)
     return model
 
 
