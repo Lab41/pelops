@@ -46,7 +46,7 @@ def feature_producer(chip_producer):
 def test_features(feature_producer, chip_producer):
     for _, chip in chip_producer["chips"].items():
         features = feature_producer.produce_features(chip)
-        assert features.shape == (1, 2048)
+        assert features.squeeze().shape == (2048,)
         assert np.sum(features) != 0
 
 
